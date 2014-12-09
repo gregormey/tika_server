@@ -28,7 +28,7 @@ start_link(Name) ->
 init(Event=#event{}) ->
 	{ok, open, Event}.
 
-open({select_date,User=#user{},Day=#day{}},Event=#event{}) ->
+open({select_date,User=#user{},Day_ts},Event=#event{}) ->
 	%%add user to day
 	{}
 

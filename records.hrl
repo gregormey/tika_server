@@ -2,7 +2,7 @@
 		day :: string(),
 		timestamp ::non_neg_integer(),
 		checked :: 0 | 1,
-		guests :: list()
+		guests = [] :: list()
 	}).
 
 -record(user,{
