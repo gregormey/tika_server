@@ -22,7 +22,7 @@
 		description :: string(),
 		dates = [] :: list(),
 		answers :: #answers {},
-		contacts:[] :: list(),
+		contacts= [] :: list(),
 		appointment :: 0 | 1,
 		answer :: 0 | 1,
 		creator :: #user {}
