@@ -1,5 +1,6 @@
 -module(event).
--export([add_user_to_event/3, remove_user_from_event/3]).
+-export([add_user_to_event/3, remove_user_from_event/3, 
+	reject_event/2]).
 -include("records.hrl").
 
 add_user_to_event(Event=#event{},User=#user{},Day_ts)->
@@ -27,5 +28,8 @@ remove_user_from_event(Event=#event{},User=#user{},Day_ts)->
 			end),
 	Event#event{dates = lists:map(Fun,Dates)}.
 
+reject_event(Event=#event{},User=#user{}) -> 
+	Contacts=Event#event.contacts,
+	Event#event{contacts = lists:delete(User,Contacts)}.
 	
 

@@ -2,7 +2,7 @@
 -behaviour(gen_fsm).
 
 %% public API
--export([start/1, start_link/1, select_date/2, deselect_date/2, stop/1]).
+-export([start/1, start_link/1, select_date/2, deselect_date/2, stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 			terminate/3, code_change/4,
@@ -31,8 +31,8 @@ deselect_date(OwnPid,{User,Day_ts}) ->
 	gen_fsm:send_event(OwnPid,{deselect_date,User,Day_ts}).
 
 %% stop the event.
-stop(OwnPid) ->
-    gen_fsm:send_all_state_event(OwnPid, stop).
+stop(OwnPid,event_is_over) ->
+    gen_fsm:send_all_state_event(OwnPid, event_is_over).
 
 %%% GEN_FSM API
 
@@ -54,6 +54,15 @@ open({deselect_date,User=#user{},Day_ts},Event=#event{}) ->
 	notice(ModEvent,"Remove User From Event",[Day_ts]),
 	{next_state,open,ModEvent};
 
+open({reject,User=#user{}},Event=#event{}) ->
+	%%remove user from event
+	ModEvent=event:reject_event(Event,User),
+	notice(ModEvent,"Reject Event ",[User]),
+	case length(Event#event.contacts)>0 of
+		true -> {stop, all_user_reject, Event};
+		false -> {next_state,open,ModEvent}
+	end;
+
 open(Event, Data) ->
 	unexpected(Event, open),
     {next_state, open, Data}.
@@ -61,7 +70,7 @@ open(Event, Data) ->
 
 %% This cancel event has been sent by the event owner
 %% stop whatever we're doing and shut down!
-handle_event(stop, _StateName, Event=#event{}) ->
+handle_event(event_is_over, _StateName, Event=#event{}) ->
     {stop, event_is_over, Event};
 handle_event(Event, StateName, Data) ->
     unexpected(Event, StateName),

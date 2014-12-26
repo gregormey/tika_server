@@ -36,7 +36,7 @@ start() ->
 	Pid.
  
 stop(Pid) ->
-	event_fsm:stop(Pid).
+	event_fsm:stop(Pid,event_is_over).
 
 select_date_event(Pid) ->
 	?_assert(ok == 
