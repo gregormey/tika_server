@@ -2,7 +2,11 @@
 -behaviour(gen_fsm).
 
 %% public API
--export([start/1, start_link/1, select_date/2, deselect_date/2, stop/2]).
+-export([start/1, start_link/1, 
+				select_date/2, 
+				deselect_date/2, 
+				reject/2,
+				stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 			terminate/3, code_change/4,
@@ -29,6 +33,9 @@ select_date(OwnPid,{User,Day_ts}) ->
 
 deselect_date(OwnPid,{User,Day_ts}) ->
 	gen_fsm:send_event(OwnPid,{deselect_date,User,Day_ts}).
+
+reject(OwnPid,{User}) ->
+	gen_fsm:send_event(OwnPid,{reject,User}).
 
 %% stop the event.
 stop(OwnPid,event_is_over) ->
@@ -58,9 +65,9 @@ open({reject,User=#user{}},Event=#event{}) ->
 	%%remove user from event
 	ModEvent=event:reject_event(Event,User),
 	notice(ModEvent,"Reject Event ",[User]),
-	case length(Event#event.contacts)>0 of
-		true -> {stop, all_user_reject, Event};
-		false -> {next_state,open,ModEvent}
+	case lists:flatlength(ModEvent#event.contacts)>0 of
+		false -> {stop, all_user_reject, Event};
+		true -> {next_state,open,ModEvent}
 	end;
 
 open(Event, Data) ->
@@ -107,6 +114,6 @@ unexpected(Msg, State) ->
 %% Send players a notice. This could be messages to their clients
 %% but for our purposes, outputting to the shell is enough.
 notice(Event=#event{}, Str, Args) ->
-    erlang:display(Str),
-    erlang:display(Event).
+    erlang:display(Str).
+    %erlang:display(Event).
     %io:format("~n: "++Str++"~n", [Event|Args]).

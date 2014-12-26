@@ -38,7 +38,3 @@ remove_user_from_event_test() ->
 	Guests=Day#day.guests,
 	Guests=[user("Maike Meyenberg")].
 
-
-
-
-
