@@ -38,8 +38,8 @@ reject(OwnPid,{User}) ->
 	gen_fsm:send_event(OwnPid,{reject,User}).
 
 %% stop the event.
-stop(OwnPid,event_is_over) ->
-    gen_fsm:send_all_state_event(OwnPid, event_is_over).
+stop(OwnPid,cancel) ->
+    gen_fsm:send_all_state_event(OwnPid, cancel).
 
 %%% GEN_FSM API
 
@@ -66,7 +66,7 @@ open({reject,User=#user{}},Event=#event{}) ->
 	ModEvent=event:reject_event(Event,User),
 	notice(ModEvent,"Reject Event ",[User]),
 	case lists:flatlength(ModEvent#event.contacts)>0 of
-		false -> {stop, all_user_reject, Event};
+		false -> {stop, normal, Event};
 		true -> {next_state,open,ModEvent}
 	end;
 
@@ -77,12 +77,11 @@ open(Event, Data) ->
 
 %% This cancel event has been sent by the event owner
 %% stop whatever we're doing and shut down!
-handle_event(event_is_over, _StateName, Event=#event{}) ->
-    {stop, event_is_over, Event};
+handle_event(cancel, _StateName, Event=#event{}) ->
+    {stop, normal, Event};
 handle_event(Event, StateName, Data) ->
     unexpected(Event, StateName),
     {next_state, StateName, Data}.
-
 
 %% Note: DO NOT reply to unexpected calls. Let the call-maker crash!
 handle_sync_event(Event, _From, StateName, Data) ->
