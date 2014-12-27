@@ -3,15 +3,17 @@
 
 %% public API
 -export([start/1, start_link/1, 
-				select_date/2, 
-				deselect_date/2, 
+				confirm_date/2, 
+				deconfirm_date/2, 
 				reject/2,
+				fix/2,
 				stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 			terminate/3, code_change/4,
 			% custom state names
-			open/2]).
+			open/2,
+			fixed/2]).
 
 -include("records.hrl").
 
@@ -28,14 +30,17 @@ start_link(Event=#event{}) ->
 	gen_fsm:start_link(?MODULE, Event, []).
 
 %%% EVENTS
-select_date(OwnPid,{User,Day_ts}) ->
-	gen_fsm:send_event(OwnPid,{select_date,User,Day_ts}).
+confirm_date(OwnPid,{User,Day_ts}) ->
+	gen_fsm:send_event(OwnPid,{confirm_date,User,Day_ts}).
 
-deselect_date(OwnPid,{User,Day_ts}) ->
-	gen_fsm:send_event(OwnPid,{deselect_date,User,Day_ts}).
+deconfirm_date(OwnPid,{User,Day_ts}) ->
+	gen_fsm:send_event(OwnPid,{deconfirm_date,User,Day_ts}).
 
 reject(OwnPid,{User}) ->
 	gen_fsm:send_event(OwnPid,{reject,User}).
+
+fix(OwnPid,{Day}) ->
+	gen_fsm:send_event(OwnPid,{fix,Day}).
 
 %% stop the event.
 stop(OwnPid,cancel) ->
@@ -49,33 +54,36 @@ init(Event=#event{}) ->
 	{ok, open, Event}.
 
 %%% STATE CALLBACKS
--spec open({select_date, User::user(), Day_ts::non_neg_integer()}, Event::event()) ->  {next_state,open,event()}.
-open({select_date,User=#user{},Day_ts},Event=#event{}) ->
+-spec open({confirm_date, User::user(), Day_ts::non_neg_integer()}, Event::event()) ->  {next_state,open,event()}.
+open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	ModEvent=event:add_user_to_event(Event,User,Day_ts),
 	notice(ModEvent,"Add User To Event",[Day_ts]),
 	{next_state,open,ModEvent};
 
-open({deselect_date,User=#user{},Day_ts},Event=#event{}) ->
+open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	%%remove user from day
 	ModEvent=event:remove_user_from_event(Event,User,Day_ts),
 	notice(ModEvent,"Remove User From Event",[Day_ts]),
 	{next_state,open,ModEvent};
 
 open({reject,User=#user{}},Event=#event{}) ->
-	%%remove user from event
-	ModEvent=event:reject_event(Event,User),
-	case lists:flatlength(ModEvent#event.contacts)>0 of
-		false ->
-			notice(ModEvent,"Stop Event-> All User Rejected",[User]),
-			{stop, normal, Event};
-		true -> 
-			notice(ModEvent,"User Rejected",[User]),
-			{next_state,open,ModEvent}
-	end;
+	reject_event(User,Event);
+
+open({fix,Day=#day{}},Event=#event{}) ->
+	ModEvent=event:fix(Event,Day),
+	notice(ModEvent,"Event Fixed",[Day]),
+	{next_state,fixed,ModEvent};
 
 open(Event, Data) ->
 	unexpected(Event, open),
     {next_state, open, Data}.
+
+fixed({reject,User=#user{}},Event=#event{}) ->
+	reject_event(User,Event);
+
+fixed(Event, Data) ->
+	unexpected(Event, fixed),
+    {next_state, fixed, Data}.
 
 
 %% This cancel event has been sent by the event owner
@@ -107,6 +115,16 @@ terminate(_Reason, _StateName, _StateData) ->
     ok.
 
 %%% PRIVATE FUNCTIONS
+reject_event(User=#user{},Event=#event{}) ->
+	ModEvent=event:reject_event(Event,User),
+	case lists:flatlength(ModEvent#event.contacts)>0 of
+		false ->
+			notice(ModEvent,"Stop Event-> All User Rejected",[User]),
+			{stop, normal, Event};
+		true -> 
+			notice(ModEvent,"User Rejected",[User]),
+			{next_state,open,ModEvent}
+	end.
 
 %% Unexpected allows to log unexpected messages
 unexpected(Msg, State) ->

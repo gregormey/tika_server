@@ -38,3 +38,8 @@ remove_user_from_event_test() ->
 	Guests=Day#day.guests,
 	Guests=[user("Maike Meyenberg")].
 
+fix_test() ->
+	Event=event:fix(event(),day("123")),
+	Day=day("123"),
+	Day=Event#event.appointment.
+

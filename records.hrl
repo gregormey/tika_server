@@ -23,7 +23,7 @@
 		dates = [] :: list(),
 		answers :: #answers {},
 		contacts= [] :: list(),
-		appointment :: 0 | 1,
+		appointment=0 :: 0 | #day {},
 		answer :: 0 | 1,
 		creator :: #user {}
 	}).
