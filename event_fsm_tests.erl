@@ -29,6 +29,8 @@ fsm_event_test_() ->
 			editDescription(SetupData),
 			addContact(SetupData),
 			removeContact(SetupData),
+			addDate(SetupData),
+			removeDate(SetupData),
 			confirm_date_event(SetupData),
 			deconfirm_date_event(SetupData),
 			reject_event1(SetupData),
@@ -82,6 +84,12 @@ addContact(Pid) ->
 removeContact(Pid) ->
 	?_assert(ok == 
 		event_fsm:edit(Pid,{removeContact,user("Benjamin Meyenberg")})).
+addDate(Pid) ->
+	?_assert(ok == 
+		event_fsm:edit(Pid,{addDate,day("789")})).
+removeDate(Pid) ->
+	?_assert(ok == 
+		event_fsm:edit(Pid,{removeDate,day("789")})).
 
 
 

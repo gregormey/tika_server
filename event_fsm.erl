@@ -48,7 +48,11 @@ edit(OwnPid,{description,Description}) ->
 edit(OwnPid,{addContact,User=#user{}}) ->
 	gen_fsm:send_event(OwnPid,{edit,addContact,User});
 edit(OwnPid,{removeContact,User=#user{}}) ->
-	gen_fsm:send_event(OwnPid,{edit,removeContact,User}).
+	gen_fsm:send_event(OwnPid,{edit,removeContact,User});
+edit(OwnPid,{addDate,Day=#day{}}) ->
+	gen_fsm:send_event(OwnPid,{edit,addDate,Day});
+edit(OwnPid,{removeDate,Day=#day{}}) ->
+	gen_fsm:send_event(OwnPid,{edit,removeDate,Day}).
 
 
 fix(OwnPid,{Day}) ->
@@ -102,6 +106,16 @@ open({edit,addContact,User=#user{}},Event=#event{}) ->
 open({edit,removeContact,User=#user{}},Event=#event{}) ->
 	ModEvent=event:edit(Event,{removeContact,User}),
 	notice(ModEvent,"Edit Event remove Contact",[User]),
+	{next_state,open,ModEvent};
+
+open({edit,addDate,Day=#day{}},Event=#event{}) ->
+	ModEvent=event:edit(Event,{addDate,Day}),
+	notice(ModEvent,"Edit Event add Date",[Day]),
+	{next_state,open,ModEvent};
+
+open({edit,removeDate,Day=#day{}},Event=#event{}) ->
+	ModEvent=event:edit(Event,{removeDate,Day}),
+	notice(ModEvent,"Edit Event remove Date",[Day]),
 	{next_state,open,ModEvent};
 
 open({fix,Day=#day{}},Event=#event{}) ->

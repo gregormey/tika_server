@@ -45,7 +45,13 @@ edit(Event=#event{},{addContact,User=#user{}}) ->
 	Event#event{contacts = lists:append(Contacts,[User])};
 edit(Event=#event{},{removeContact,User=#user{}}) ->
 	Contacts=Event#event.contacts,
-	Event#event{contacts = lists:delete(User,Contacts)}.
+	Event#event{contacts = lists:delete(User,Contacts)};
+edit(Event=#event{},{addDate,Day=#day{}}) ->
+	Dates=Event#event.dates,
+	Event#event{dates = lists:append(Dates,[Day])};
+edit(Event=#event{},{removeDate,Day=#day{}}) ->
+	Dates=Event#event.dates,
+	Event#event{dates = lists:delete(Day,Dates)}.
 
 	
 
