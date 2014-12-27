@@ -44,7 +44,7 @@ reject(OwnPid,{User}) ->
 edit(OwnPid,{title,Title}) ->
 	gen_fsm:send_event(OwnPid,{edit,title,Title});
 edit(OwnPid,{description,Description}) ->
-	gen_fsm:send_event(OwnPid,{edit,description,Description}).;
+	gen_fsm:send_event(OwnPid,{edit,description,Description});
 edit(OwnPid,{addContact,User=#user{}}) ->
 	gen_fsm:send_event(OwnPid,{edit,addContact,User});
 edit(OwnPid,{removeContact,User=#user{}}) ->
