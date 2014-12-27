@@ -6,7 +6,9 @@
 				confirm_date/2, 
 				deconfirm_date/2, 
 				reject/2,
+				edit/2,
 				fix/2,
+				over/1,
 				stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -39,8 +41,21 @@ deconfirm_date(OwnPid,{User,Day_ts}) ->
 reject(OwnPid,{User}) ->
 	gen_fsm:send_event(OwnPid,{reject,User}).
 
+edit(OwnPid,{title,Title}) ->
+	gen_fsm:send_event(OwnPid,{edit,title,Title});
+edit(OwnPid,{description,Description}) ->
+	gen_fsm:send_event(OwnPid,{edit,description,Description}).;
+edit(OwnPid,{addContact,User=#user{}}) ->
+	gen_fsm:send_event(OwnPid,{edit,addContact,User});
+edit(OwnPid,{removeContact,User=#user{}}) ->
+	gen_fsm:send_event(OwnPid,{edit,removeContact,User}).
+
+
 fix(OwnPid,{Day}) ->
 	gen_fsm:send_event(OwnPid,{fix,Day}).
+
+over(OwnPid) ->
+	gen_fsm:send_event(OwnPid,over).
 
 %% stop the event.
 stop(OwnPid,cancel) ->
@@ -69,6 +84,26 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 open({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event);
 
+open({edit,title,Title},Event=#event{}) ->
+	ModEvent=event:edit(Event,{title,Title}),
+	notice(ModEvent,"Edit Event Title",[Title]),
+	{next_state,open,ModEvent};
+
+open({edit,description,Description},Event=#event{}) ->
+	ModEvent=event:edit(Event,{description,Description}),
+	notice(ModEvent,"Edit Event Description",[Description]),
+	{next_state,open,ModEvent};
+
+open({edit,addContact,User=#user{}},Event=#event{}) ->
+	ModEvent=event:edit(Event,{addContact,User}),
+	notice(ModEvent,"Edit Event add Contact",[User]),
+	{next_state,open,ModEvent};
+
+open({edit,removeContact,User=#user{}},Event=#event{}) ->
+	ModEvent=event:edit(Event,{removeContact,User}),
+	notice(ModEvent,"Edit Event remove Contact",[User]),
+	{next_state,open,ModEvent};
+
 open({fix,Day=#day{}},Event=#event{}) ->
 	ModEvent=event:fix(Event,Day),
 	notice(ModEvent,"Event Fixed",[Day]),
@@ -80,6 +115,10 @@ open(Event, Data) ->
 
 fixed({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event);
+
+fixed(over, Event=#event{}) ->
+	notice(Event,"Event is Over",[]),
+    {stop, normal, Event};
 
 fixed(Event, Data) ->
 	unexpected(Event, fixed),

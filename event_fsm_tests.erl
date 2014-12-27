@@ -11,7 +11,6 @@ user(Name)->
 		displayName = Name
 	}.
 
-
 event()->
 	#event{
 		title = "Test Event",
@@ -26,13 +25,20 @@ fsm_event_test_() ->
 		[
 		fun (SetupData) ->
 			[
+			editTitle(SetupData),
+			editDescription(SetupData),
 			confirm_date_event(SetupData),
 			deconfirm_date_event(SetupData),
 			reject_event1(SetupData),
 			reject_event2(SetupData)
 			]
 		end,
-		fun fix/1
+		fun (SetupData) ->
+			[
+				fix(SetupData),
+				over(SetupData)
+			]
+		end
 		]
 	}.
 
@@ -59,6 +65,15 @@ reject_event2(Pid) ->
 fix(Pid) ->
 	?_assert(ok == 
 		event_fsm:fix(Pid,{day("123")})).
+over(Pid) ->
+	?_assert(ok == 
+		event_fsm:over(Pid)).
+editTitle(Pid) ->
+	?_assert(ok == 
+		event_fsm:edit(Pid,{title,"Test Title"})).
+editDescription(Pid) ->
+	?_assert(ok == 
+		event_fsm:edit(Pid,{description,"Test Description"})).
 
 
 

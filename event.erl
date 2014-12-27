@@ -1,6 +1,6 @@
 -module(event).
 -export([add_user_to_event/3, remove_user_from_event/3, 
-	reject_event/2,fix/2]).
+	reject_event/2,fix/2,edit/2]).
 -include("records.hrl").
 
 add_user_to_event(Event=#event{},User=#user{},Day_ts)->
@@ -34,6 +34,18 @@ reject_event(Event=#event{},User=#user{}) ->
 
 fix(Event=#event{},Day=#day{}) ->
 	Event#event{appointment=Day}.
+
+%edit Event properties
+edit(Event=#event{},{title,Title}) ->
+	Event#event{title=Title};
+edit(Event=#event{},{description,Description}) ->
+	Event#event{description=Description};
+edit(Event=#event{},{addContact,User=#user{}}) ->
+	Contacts=Event#event.contacts,
+	Event#event{contacts = lists:append(Contacts,[User])};
+edit(Event=#event{},{removeContact,User=#user{}}) ->
+	Contacts=Event#event.contacts,
+	Event#event{contacts = lists:delete(User,Contacts)}.
 
 	
 
