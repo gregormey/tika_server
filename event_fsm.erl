@@ -64,10 +64,13 @@ open({deselect_date,User=#user{},Day_ts},Event=#event{}) ->
 open({reject,User=#user{}},Event=#event{}) ->
 	%%remove user from event
 	ModEvent=event:reject_event(Event,User),
-	notice(ModEvent,"Reject Event ",[User]),
 	case lists:flatlength(ModEvent#event.contacts)>0 of
-		false -> {stop, normal, Event};
-		true -> {next_state,open,ModEvent}
+		false ->
+			notice(ModEvent,"Stop Event-> All User Rejected",[User]),
+			{stop, normal, Event};
+		true -> 
+			notice(ModEvent,"User Rejected",[User]),
+			{next_state,open,ModEvent}
 	end;
 
 open(Event, Data) ->
