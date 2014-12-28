@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>.eunit/tika_server_app.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /Users/gregor/tika_server/.eunit/tika_server_app.erl by COVER 2014-12-28 at 13:57:17
+
+****************************************************************************
+
+        |  -module(tika_server_app).
+        |  
+        |  -behaviour(application).
+        |  
+        |  %% Application callbacks
+        |  -export([start/2, stop/1]).
+        |  
+        |  %% include for eunit
+        |  -ifdef(TEST).
+        |  -include_lib("eunit/include/eunit.hrl").
+        |  -endif.
+        |  
+        |  %% ===================================================================
+        |  %% Application callbacks
+        |  %% ===================================================================
+        |  
+        |  start(_StartType, _StartArgs) -&gt;
+     1..|      tika_server_sup:start_link().
+        |  
+        |  stop(_State) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% simple app test
+        |  -ifdef(TEST).
+        |  
+        |  simple_test() -&gt;
+     1..|      ok = application:start(tika_server),
+     1..|      ?assertNot(undefined == whereis(tika_server_sup)).
+        |  
+        |  -endif.</pre>
+</body>
+</html>
