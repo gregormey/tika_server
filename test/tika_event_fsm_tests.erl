@@ -1,4 +1,4 @@
--module(event_fsm_tests).
+-module(tika_event_fsm_tests).
 -include("records.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -47,49 +47,49 @@ fsm_event_test_() ->
 	}.
 
 start() ->
-	{ok, Pid} = event_fsm:start_link(event()),
+	{ok, Pid} = tika_event_fsm:start_link(event()),
 	Pid.
  
 stop(Pid) ->
-	event_fsm:stop(Pid,cancel).
+	tika_event_fsm:stop(Pid,cancel).
 
 confirm_date_event(Pid) ->
 	?_assert(ok == 
-	event_fsm:confirm_date(Pid,{user("Gregor Meyenberg"),"123"})).
+	tika_event_fsm:confirm_date(Pid,{user("Gregor Meyenberg"),"123"})).
 
 deconfirm_date_event(Pid) ->
 	?_assert(ok ==
-		event_fsm:deconfirm_date(Pid,{user("Gregor Meyenberg"),"123"})).
+		tika_event_fsm:deconfirm_date(Pid,{user("Gregor Meyenberg"),"123"})).
 reject_event1(Pid) -> 
 	?_assert(ok == 
-		event_fsm:reject(Pid,{user("Gregor Meyenberg")})).
+		tika_event_fsm:reject(Pid,{user("Gregor Meyenberg")})).
 reject_event2(Pid) ->
 	?_assert(ok == 
-		event_fsm:reject(Pid,{user("Maike Meyenberg")})).
+		tika_event_fsm:reject(Pid,{user("Maike Meyenberg")})).
 fix(Pid) ->
 	?_assert(ok == 
-		event_fsm:fix(Pid,{day("123")})).
+		tika_event_fsm:fix(Pid,{day("123")})).
 over(Pid) ->
 	?_assert(ok == 
-		event_fsm:over(Pid)).
+		tika_event_fsm:over(Pid)).
 editTitle(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{title,"Test Title"})).
+		tika_event_fsm:edit(Pid,{title,"Test Title"})).
 editDescription(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{description,"Test Description"})).
+		tika_event_fsm:edit(Pid,{description,"Test Description"})).
 addContact(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{addContact,user("Benjamin Meyenberg")})).
+		tika_event_fsm:edit(Pid,{addContact,user("Benjamin Meyenberg")})).
 removeContact(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{removeContact,user("Benjamin Meyenberg")})).
+		tika_event_fsm:edit(Pid,{removeContact,user("Benjamin Meyenberg")})).
 addDate(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{addDate,day("789")})).
+		tika_event_fsm:edit(Pid,{addDate,day("789")})).
 removeDate(Pid) ->
 	?_assert(ok == 
-		event_fsm:edit(Pid,{removeDate,day("789")})).
+		tika_event_fsm:edit(Pid,{removeDate,day("789")})).
 
 
 

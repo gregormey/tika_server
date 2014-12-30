@@ -5,4 +5,5 @@
               {applications,[kernel,stdlib]},
               {mod,{tika_server_app,[]}},
               {env,[]},
-              {modules,[event,event_fsm,tika_server_app,tika_server_sup]}]}.
+              {modules,[tika_event,tika_event_fsm,tika_server_app,
+                        tika_server_sup,tika_user,tika_user_fsm]}]}.

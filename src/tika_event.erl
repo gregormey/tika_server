@@ -1,4 +1,4 @@
--module(event).
+-module(tika_event).
 -export([add_user_to_event/3, remove_user_from_event/3, 
 	reject_event/2,fix/2,edit/2]).
 -include("records.hrl").

@@ -1,4 +1,4 @@
--module(event_fsm).
+-module(tika_event_fsm).
 -behaviour(gen_fsm).
 
 %% public API
@@ -75,13 +75,13 @@ init(Event=#event{}) ->
 %%% STATE CALLBACKS
 -spec open({confirm_date, User::user(), Day_ts::non_neg_integer()}, Event::event()) ->  {next_state,open,event()}.
 open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
-	ModEvent=event:add_user_to_event(Event,User,Day_ts),
+	ModEvent=tika_event:add_user_to_event(Event,User,Day_ts),
 	notice(ModEvent,"Add User To Event",[Day_ts]),
 	{next_state,open,ModEvent};
 
 open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	%%remove user from day
-	ModEvent=event:remove_user_from_event(Event,User,Day_ts),
+	ModEvent=tika_event:remove_user_from_event(Event,User,Day_ts),
 	notice(ModEvent,"Remove User From Event",[Day_ts]),
 	{next_state,open,ModEvent};
 
@@ -89,37 +89,37 @@ open({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event);
 
 open({edit,title,Title},Event=#event{}) ->
-	ModEvent=event:edit(Event,{title,Title}),
+	ModEvent=tika_event:edit(Event,{title,Title}),
 	notice(ModEvent,"Edit Event Title",[Title]),
 	{next_state,open,ModEvent};
 
 open({edit,description,Description},Event=#event{}) ->
-	ModEvent=event:edit(Event,{description,Description}),
+	ModEvent=tika_event:edit(Event,{description,Description}),
 	notice(ModEvent,"Edit Event Description",[Description]),
 	{next_state,open,ModEvent};
 
 open({edit,addContact,User=#user{}},Event=#event{}) ->
-	ModEvent=event:edit(Event,{addContact,User}),
+	ModEvent=tika_event:edit(Event,{addContact,User}),
 	notice(ModEvent,"Edit Event add Contact",[User]),
 	{next_state,open,ModEvent};
 
 open({edit,removeContact,User=#user{}},Event=#event{}) ->
-	ModEvent=event:edit(Event,{removeContact,User}),
+	ModEvent=tika_event:edit(Event,{removeContact,User}),
 	notice(ModEvent,"Edit Event remove Contact",[User]),
 	{next_state,open,ModEvent};
 
 open({edit,addDate,Day=#day{}},Event=#event{}) ->
-	ModEvent=event:edit(Event,{addDate,Day}),
+	ModEvent=tika_event:edit(Event,{addDate,Day}),
 	notice(ModEvent,"Edit Event add Date",[Day]),
 	{next_state,open,ModEvent};
 
 open({edit,removeDate,Day=#day{}},Event=#event{}) ->
-	ModEvent=event:edit(Event,{removeDate,Day}),
+	ModEvent=tika_event:edit(Event,{removeDate,Day}),
 	notice(ModEvent,"Edit Event remove Date",[Day]),
 	{next_state,open,ModEvent};
 
 open({fix,Day=#day{}},Event=#event{}) ->
-	ModEvent=event:fix(Event,Day),
+	ModEvent=tika_event:fix(Event,Day),
 	notice(ModEvent,"Event Fixed",[Day]),
 	{next_state,fixed,ModEvent};
 
@@ -169,7 +169,7 @@ terminate(_Reason, _StateName, _StateData) ->
 
 %%% PRIVATE FUNCTIONS
 reject_event(User=#user{},Event=#event{}) ->
-	ModEvent=event:reject_event(Event,User),
+	ModEvent=tika_event:reject_event(Event,User),
 	case lists:flatlength(ModEvent#event.contacts)>0 of
 		false ->
 			notice(ModEvent,"Stop Event-> All User Rejected",[User]),
@@ -187,6 +187,7 @@ unexpected(Msg, State) ->
 %% Send players a notice. This could be messages to their clients
 %% but for our purposes, outputting to the shell is enough.
 notice(Event=#event{}, Str, Args) ->
+    Str,
+    Args,
+    Event,
     erlang:display(Str).
-    %erlang:display(Event).
-    %io:format("~n: "++Str++"~n", [Event|Args]).
