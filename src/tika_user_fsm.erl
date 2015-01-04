@@ -3,7 +3,8 @@
 
 %% public API
 -export([start/1, start_link/1, 
-			invite/2
+			invite/2,
+            register/2,
 		]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -30,7 +31,8 @@ start_link(User=#user{}) ->
 %%% EVENTS
 invite(OwnPid,{Event=#event{}}) -> 
 	gen_fsm:send_event(OwnPid,{invite, Event}).
-
+register(OwnPid) -> 
+    gen_fsm:send_event(OwnPid,register).
 
 %%% GEN_FSM API
 
@@ -45,10 +47,15 @@ created({invite,Event=#event{}},User=#user{}) ->
 	user:invite(User,Event),
 	{next_state,invited,User};
 
+created(register,User=#user{}) ->
+    {next_state,registered,User};
+
 created(Event, Data) ->
 	unexpected(Event, created),
     {next_state, created, Data}.
 
+invited(register,User=#user{}) ->
+    {next_state,registered,User};
 
 invited(Event, Data) ->
 	unexpected(Event, invited),
