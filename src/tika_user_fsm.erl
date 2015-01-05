@@ -4,7 +4,8 @@
 %% public API
 -export([start/1, start_link/1, 
 			invite/2,
-            register/2,
+            register/1,
+            stop/2
 		]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -44,7 +45,7 @@ init(User=#user{}) ->
 %%% STATE CALLBACKS
 -spec created({invite,Event::event()}, User::user()) ->  {next_state,invited,user()}.
 created({invite,Event=#event{}},User=#user{}) ->
-	user:invite(User,Event),
+	tika_user:invite(User,Event),
 	{next_state,invited,User};
 
 created(register,User=#user{}) ->
@@ -64,6 +65,10 @@ invited(Event, Data) ->
 registered(Event, Data) ->
 	unexpected(Event, invited),
     {next_state, created, Data}.
+
+%% stop the user fsm.
+stop(OwnPid,cancel) ->
+    gen_fsm:send_all_state_event(OwnPid, cancel).
 	
 %% This cancel event has been sent by the event owner
 %% stop whatever we're doing and shut down!
