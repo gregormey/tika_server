@@ -27,7 +27,7 @@ set_dbPath()->
 -spec start_applications() -> ok.
 start_applications() ->
 	ok=application:start(asn1),
-	%ok=application:start(crypto),
+	application:start(crypto),
 	ok=application:start(public_key),
 	ok=application:start(ssl),
 	ok=application:start(gproc),
