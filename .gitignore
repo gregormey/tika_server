@@ -1,3 +1,4 @@
 .eunit
 ebin/Mnesia.nonode@nohost
 priv/data
+erl_crash.dump
