@@ -14,7 +14,16 @@
 %% Application callbacks
 %% ===================================================================
 
-start(_StartType, _StartArgs) ->
+start(_StartType, _StartArgs) ->	 
+	Dispatch = cowboy_router:compile([
+	{'_', [
+		{"/websocket",tika_websocket, []}
+	]}
+	]),
+	%%websocket port
+	Port = 10010,
+	{ok, _} = cowboy:start_http(http, 100, [{port, Port}],
+		[{env, [{dispatch, Dispatch}]}]),
     tika_server_sup:start_link().
 
 stop(_State) ->
