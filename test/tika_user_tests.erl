@@ -4,6 +4,7 @@
 
 user()->
 	#user{
+		id=1,
 		displayName = "Maike Meyenberg",
 		mail="maike@meyenberg.de"
 	}.
@@ -44,6 +45,13 @@ tika_database_test_() ->
 create() ->
 	User=tika_user:create(),
 	?_assert(1==User#user.id).
+
+user2json_test()->
+	{[
+	  {<<"id">>,1},
+	  {<<"displayName">>,<<"Maike Meyenberg">>},
+	  {<<"mail">>,<<"maike@meyenberg.de">>}
+	 ]}=tika_user:user2json(user()).
 
 
 

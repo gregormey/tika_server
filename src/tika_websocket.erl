@@ -23,7 +23,6 @@ websocket_handle({text, Msg}, Req, State) ->
     erlang:display("GET Message:"),
     erlang:display(binary_to_list(Msg)),
     Response = handle_events(Msg),
-    erlang:display(binary_to_list(Response)),
     case Response of
         true -> {ok, Req, State};
         _ -> {reply, {text, << Response/binary >>}, Req, State}
@@ -55,8 +54,11 @@ handle_events(Msg) ->
 connectUser(null)-> 
     User=tika_user:create(),
     gproc:reg({p, l, User#user.id}),
-    erlang:display(User),
-    jiffy:encode({[{<< "updateUser" >> , null}]}).
+    format_client_response("updateUser",tika_user:user2json(User));
+connectUser(User)->
+    UserRec=tika_user:json2user(User),
+    gproc:reg({p, l, UserRec#user.id}),
+    true.
 
 %% Register Websocket connection by User Hash
 -spec registerHash(binary()) -> true.
@@ -69,6 +71,15 @@ sendObjectsToRemote(To,Data) ->
     erlang:display("Send Data To:"++binary_to_list(To)),
     {_PID, Data}=gproc:send({p, l, To}, {self(), Data}),
     true.
+
+%%% INTERNAL
+-spec format_client_response(string(),any()) -> tuple().
+format_client_response(Event,Data)->
+    jiffy:encode({[
+        {<< "event" >>,list_to_binary(Event)},
+        {<< "data" >> , Data}
+    ]}).
+
     
 
 

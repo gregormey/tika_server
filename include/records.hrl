@@ -7,8 +7,8 @@
 
 -record(user,{
 	id :: non_neg_integer(),
-	displayName :: string(),
-	mail :: string()
+	displayName = "" :: string(),
+	mail = "" :: string()
 }).
 
 -record(answers,{
