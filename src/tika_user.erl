@@ -1,5 +1,5 @@
 -module(tika_user).
--export([invite/2,create/0,user2json/1,json2user/1]).
+-export([invite/2,create/0,user2json/1,json2user/1,edit/2]).
 -include("records.hrl").
 
 -type user() :: #user {}.
@@ -8,6 +8,10 @@
 
 invite(#user{mail=Mail, displayName=DisplayName},#event{title=Title}) ->
 	tika_mail:send_invite(Mail,DisplayName,Title).
+
+-spec register(user(),string(),string()) ->  user().
+register(User=#user{id=Id},DisplayName,Mail) ->
+		
 
 
 -spec user2json(user()) ->  tuple().
@@ -32,7 +36,15 @@ json2user(Json)->
 		mail=binary_to_list(Mail)  
 	}.
 
--spec create() ->  user().
+-spec create() ->  {Pid,user()}.
 create()->
 	tika_database:create(user,#user{}).
+
+
+%edit Event properties
+edit(User=#user{},{displayName,DisplayName}) ->
+	User#user{displayName=DisplayName};
+edit(Event=#event{},{mail,Description}) ->
+	Event#event{description=Description};
+
 	
