@@ -118,9 +118,11 @@ code_change(_OldVsn, StateName, Data, _Extra) ->
  {ok, StateName, Data}.
 
 %% Event over.
-terminate(normal, ready, Event=#event{}) ->
-    notice(Event, "FSM leaving.", []);
-terminate(_Reason, _StateName, _StateData) ->
+terminate(normal, ready, User=#user{}) ->
+    ok=tika_process:unreg(user,User#user.id),
+    notice(Event, "FSM leaving.", []);  
+terminate(_Reason, _StateName, User=#user{}) ->
+    ok=tika_process:unreg(user,User#user.id),
     ok.
 
 

@@ -27,3 +27,6 @@
 		answer :: 0 | 1,
 		creator :: #user {}
 	}).
+%% records to store process ids
+-record( process_user, {id,pid} ).
+-record( process_event, {id,pid} ).

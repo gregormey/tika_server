@@ -55,13 +55,12 @@ updateUser(User)->
     UserRec=tika_user:json2user(User),
 
 connectUser(null)-> 
-    {ok, Pid} = tika_user_fsm:start_link(),
-    User=tika_user_fsm:user(Pid),
-    gproc:reg({p, l, {websocket,User#user.id}),
-    format_client_response("updateUser",tika_user_fsm:user(Pid,json));
-connectUser(User)->
-    UserRec=tika_user:json2user(User),
+    User=tika_user:create(),
     gproc:reg({p, l, {websocket,UserRec#user.id}),
+    format_client_response("updateUser",tika_user:user2json(User));
+connectUser(UserJson)->
+    User=tika_user:load(tika_user:json2user(UserJson)),
+    gproc:reg({p, l, {websocket,User#user.id}),
     true.
 
 

@@ -6,10 +6,12 @@
 %% interfaces to database
 -export([install/0]).
 -export([install/1]).
--export([id/1]).
 -export([find/1]).
 -export([find/2]).
+-export([find/3]).
 -export([write/2]).
+-export([create/2]).
+-export([delete/2]).
 
 
 %% record to generate unique ids
@@ -42,6 +44,10 @@ find(Table,Filter)->
 		Results -> Results
 	end.
 
+-spec find(id,atom(),non_neg_integer()) -> record() |  not_found.
+find(id,Table,Id)->
+	find(Table,filterById(Id)).
+
 %%get all records from database
 -spec find(atom(),fun()) -> tuple() |  no_rows.
 find(Table)->
@@ -58,14 +64,32 @@ write(Table,Record)->
 			mnesia:write(Record)
 		end,
 	[Table,Id|_] = Record,
-	Ff = fun(R) ->
-		[Table,Id2|_]=tuple_to_list(R),
-		Id==Id2,
-	end,
 	mnesia:transaction(Fw),
-	find(Table,Ff).
+	find(Table,filterById(Id)).
+
+-spec create(atom()) -> tuple().
+create(Table,Record)
+	Id=id(Table),
+	[Table,_|T] = Record,
+	{reply, write(Table,[Table,Id|T]) , Tab}.
+
+-spec create(atom(),tuple()) -> any().
+delete(Table,Record) ->
+	[Table,Id|_] = Record,
+	case find(Table,filterById(Id))of
+		not_found -> {reply, ok, Tab};
+		Result -> {atomic, Val} = mnesia:transaction(
+					fun () -> mnesia:delete_object(Result) end
+					),
+				{reply, Val, Tab}
+	end.
 
 %%% Private Functions
+filterById(Id)->
+	fun(R) ->
+		[Table,Id2|_]=tuple_to_list(R),
+		Id==Id2,
+	end.
 
 %% Mnesia query function
 do(Q) ->
@@ -83,8 +107,9 @@ create_tables()->
 	%% id table
 	{atomic,ok}=mnesia:create_table(unique_ids, [{attributes, record_info(fields, unique_ids)},{disc_copies,[node()]}]),
 	
-	%% process table
-	{atomic,ok}=mnesia:create_table(process_ids, [{attributes, record_info(fields, process_ids)},{ram_copies,[node()]}]),
+	%% process table - ram only
+	{atomic,ok}=mnesia:create_table(process_user, [{attributes, record_info(fields, process_user)},{ram_copies,[node()]}]),
+	{atomic,ok}=mnesia:create_table(process_event, [{attributes, record_info(fields, process_event)},{ram_copies,[node()]}]),
 	
 
 	%% system models

@@ -26,6 +26,7 @@ set_dbPath()->
 %starts all required OTP applications
 -spec start_applications() -> ok.
 start_applications() ->
+	ok=aplication:start(mnesia),
 	ok=application:start(asn1),
 	application:start(crypto),
 	ok=application:start(public_key),
