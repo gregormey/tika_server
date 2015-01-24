@@ -53,7 +53,6 @@ user(OwnPid,json) ->
 %% Set Event FSM to open state
 -spec init(User::user()) -> {ok, created, user()}.
 init(User=#user{}) ->
-    gproc:reg({p, l, {user_fsm,User#user.id})
 	{ok, created, User}.
 
 %%% STATE CALLBACKS
@@ -62,22 +61,16 @@ created({invite,Event=#event{}},User=#user{}) ->
 	tika_user:invite(User,Event),
 	{next_state,invited,User};
 
-created({update,DisplayName,Mail},User=#user{}) ->
-    {next_state,registered,User};
 
 created(Event, Data) ->
 	unexpected(Event, created),
     {next_state, created, Data}.
 
-invited({update,DisplayName,Mail},User=#user{}) ->
-    {next_state,registered,User};
 
 invited(Event, Data) ->
 	unexpected(Event, invited),
     {next_state, created, Data}.
-   
-registered({update,DisplayName,Mail},User=#user{}) ->
-    {next_state,registered,User};
+
 
 registered(Event, Data) ->
 	unexpected(Event, invited),
@@ -90,7 +83,7 @@ stop(OwnPid,cancel) ->
 %% This cancel event has been sent by the event owner
 %% stop whatever we're doing and shut down!
 handle_event(cancel, _StateName, User=#user{}) ->
-    {stop, normal, Event};
+    {stop, normal, User};
 handle_event(Event, StateName, Data) ->
     unexpected(Event, StateName),
     {next_state, StateName, Data}.
@@ -120,7 +113,7 @@ code_change(_OldVsn, StateName, Data, _Extra) ->
 %% Event over.
 terminate(normal, ready, User=#user{}) ->
     ok=tika_process:unreg(user,User#user.id),
-    notice(Event, "FSM leaving.", []);  
+    notice(User, "FSM leaving.", []);  
 terminate(_Reason, _StateName, User=#user{}) ->
     ok=tika_process:unreg(user,User#user.id),
     ok.

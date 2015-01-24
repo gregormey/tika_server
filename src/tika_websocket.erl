@@ -52,15 +52,15 @@ handle_events(Msg) ->
     end.
 
 updateUser(User)->
-    UserRec=tika_user:json2user(User),
+    UserRec=tika_user:json2user(User).
 
 connectUser(null)-> 
     User=tika_user:create(),
-    gproc:reg({p, l, {websocket,UserRec#user.id}),
+    gproc:reg({p, l, {websocket,User#user.id}}),
     format_client_response("updateUser",tika_user:user2json(User));
 connectUser(UserJson)->
     User=tika_user:load(tika_user:json2user(UserJson)),
-    gproc:reg({p, l, {websocket,User#user.id}),
+    gproc:reg({p, l, {websocket,User#user.id}}),
     true.
 
 

@@ -6,5 +6,6 @@
               {mod,{tika_server_app,[]}},
               {env,[]},
               {modules,[tika,tika_database,tika_event,tika_event_fsm,
-                        tika_mail,tika_server_app,tika_server_sup,tika_user,
-                        tika_user_fsm,tika_websocket]}]}.
+                        tika_mail,tika_process,tika_server_app,
+                        tika_server_sup,tika_user,tika_user_fsm,
+                        tika_websocket]}]}.

@@ -49,7 +49,7 @@ find(id,Table,Id)->
 	find(Table,filterById(Id)).
 
 %%get all records from database
--spec find(atom(),fun()) -> tuple() |  no_rows.
+-spec find(atom()) -> tuple() |  no_rows.
 find(Table)->
 	case do(qlc:q([X || X <- mnesia:table(Table)]))  of
 		[] -> no_rows;
@@ -58,7 +58,7 @@ find(Table)->
 
 
 %% Update a player by given row
--spec write(atom(), tuple() -> tuple().
+-spec write(atom(), tuple()) -> tuple().
 write(Table,Record)->
 	Fw = fun() ->
 			mnesia:write(Record)
@@ -67,29 +67,30 @@ write(Table,Record)->
 	mnesia:transaction(Fw),
 	find(Table,filterById(Id)).
 
--spec create(atom()) -> tuple().
-create(Table,Record)
+-spec create(atom(),tuple()) -> tuple().
+create(Table,Record) ->
 	Id=id(Table),
 	[Table,_|T] = Record,
-	{reply, write(Table,[Table,Id|T]) , Tab}.
+	write(Table,[Table,Id|T]).
 
--spec create(atom(),tuple()) -> any().
+-spec delete(atom(),tuple()) -> any().
 delete(Table,Record) ->
 	[Table,Id|_] = Record,
 	case find(Table,filterById(Id))of
-		not_found -> {reply, ok, Tab};
+		not_found -> not_found;
 		Result -> {atomic, Val} = mnesia:transaction(
 					fun () -> mnesia:delete_object(Result) end
 					),
-				{reply, Val, Tab}
+					Val
 	end.
 
 %%% Private Functions
 filterById(Id)->
 	fun(R) ->
 		[Table,Id2|_]=tuple_to_list(R),
-		Id==Id2,
+		Id==Id2
 	end.
+
 
 %% Mnesia query function
 do(Q) ->

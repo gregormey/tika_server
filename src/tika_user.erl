@@ -49,10 +49,9 @@ user2json(User) -> gen_server:call(?MODULE,{user2json,User}).
 -spec json2user(tuple()) -> user().
 json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
 
--spec edit(user(),{displayName,string()}) -> user().
+-spec edit(user(),{atom(),string()}) -> user().
 edit(User=#user{},{displayName,DisplayName}) -> gen_server:call(?MODULE,{edit,User,displayName,DisplayName});
 
--spec edit(user(),{mail,string()}) -> user().
 edit(User=#user{},{mail,Mail}) -> gen_server:call(?MODULE,{edit,User,mail,Mail}).
 
 %% Internal functions

@@ -18,6 +18,8 @@
 -export([start_link/0]).
 -export([stop/0]).
 
+-include("records.hrl").
+
 -type process_event() :: #process_event {}.
 -type process_user() :: #process_user {}.
 
@@ -28,13 +30,13 @@ start()-> gen_server:start_link({local,?MODULE},?MODULE,[], []).
 -spec start_link() -> {ok, pid()} | {error, any()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
--spec reg(atom(),non_neg_integer(),pid()) -> tuple().
+-spec reg(atom(),non_neg_integer()) -> tuple().
 reg(Record,Id) ->
-	gen_server:call(?MODULE,{reg,Record,Id});
+	gen_server:call(?MODULE,{reg,Record,Id}).
 
--spec unreg(atom(),non_neg_integer(),pid()) -> tuple().
+-spec unreg(atom(),non_neg_integer()) -> tuple().
 unreg(Record,Id) ->
-	gen_server:call(?MODULE,{unreg,Record,Id});
+	gen_server:call(?MODULE,{unreg,Record,Id}).
 
 -spec stop() -> ok.
 stop()-> gen_server:call(?MODULE, stop).
