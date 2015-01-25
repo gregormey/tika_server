@@ -21,7 +21,8 @@ tika_database_test_() ->
 			[
 				create(),
 				user2json(),
-				json2user()
+				json2user(),
+				load()
 			]
 		end
 		]
@@ -48,6 +49,10 @@ json2user()->
 	 	]}
 	),
 	User=UserJson.
+
+load()->
+	User=tika_user:load(user()),
+	?_assert(1==User#user.id).
 
 
 

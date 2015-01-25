@@ -72,7 +72,7 @@ handle_call(create, _From, Tab) ->
 handle_call({load,User}, _From, Tab) ->
 	case tika_database:find(id,user,User#user.id) of
 		not_found -> not_found;
-		[User] -> tika_process:reg(user,User) 
+		[FoundUser] -> tika_process:reg(user,FoundUser) 
 	end,
 	{reply, User, Tab};
 
