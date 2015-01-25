@@ -2,12 +2,11 @@
 -behaviour(gen_fsm).
 
 %% public API
--export([start/0, start_link/0, 
+-export([start/1, start_link/1, 
 			invite/2,
             update/2,
             statename/1,
             user/1,
-            user/2,
             stop/2
 		]).
 %% gen_fsm callbacks
@@ -26,12 +25,10 @@
 
 
 %%% PUBLIC API
-start() ->
-    User=tika_user:create(),
+start(User=#user{}) ->
 	gen_fsm:start(?MODULE, User, []).
  
-start_link() ->
-    User=tika_user:create(),
+start_link(User=#user{}) ->
 	gen_fsm:start_link(?MODULE, User, []).
 
 %%% EVENTS
@@ -45,8 +42,7 @@ statename(OwnPid) ->
     gen_fsm:sync_send_all_state_event(OwnPid,which_statename).
 user(OwnPid) ->
     gen_fsm:sync_send_all_state_event(OwnPid,which_user).
-user(OwnPid,json) ->
-    gen_fsm:sync_send_all_state_event(OwnPid,which_user_json).
+
 
 %%% GEN_FSM API
 
@@ -93,8 +89,6 @@ handle_sync_event(which_statename, _From, StateName, User=#user{}) ->
     {reply, StateName, StateName, User};
 handle_sync_event(which_user, _From, StateName, User=#user{}) ->
     {reply,User,StateName,User};
-handle_sync_event(which_user_json, _From, StateName, User=#user{}) ->
-    {reply,tika_user:user2json(User),StateName,User};
 
 %% Note: DO NOT reply to unexpected calls. Let the call-maker crash!
 handle_sync_event(Event, _From, StateName, Data) ->

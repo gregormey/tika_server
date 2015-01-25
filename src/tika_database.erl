@@ -63,19 +63,19 @@ write(Table,Record)->
 	Fw = fun() ->
 			mnesia:write(Record)
 		end,
-	[Table,Id|_] = Record,
+	[Table,Id|_] = tuple_to_list(Record),
 	mnesia:transaction(Fw),
 	find(Table,filterById(Id)).
 
 -spec create(atom(),tuple()) -> tuple().
 create(Table,Record) ->
 	Id=id(Table),
-	[Table,_|T] = Record,
-	write(Table,[Table,Id|T]).
+	[Table,_|T] = tuple_to_list(Record),
+	write(Table,list_to_tuple([Table,Id|T])).
 
 -spec delete(atom(),tuple()) -> any().
 delete(Table,Record) ->
-	[Table,Id|_] = Record,
+	[Table,Id|_] = tuple_to_list(Record),
 	case find(Table,filterById(Id))of
 		not_found -> not_found;
 		Result -> {atomic, Val} = mnesia:transaction(
@@ -87,7 +87,7 @@ delete(Table,Record) ->
 %%% Private Functions
 filterById(Id)->
 	fun(R) ->
-		[Table,Id2|_]=tuple_to_list(R),
+		[_,Id2|_]=tuple_to_list(R),
 		Id==Id2
 	end.
 

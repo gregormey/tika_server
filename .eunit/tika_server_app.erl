@@ -28,12 +28,3 @@ start(_StartType, _StartArgs) ->
 
 stop(_State) ->
     ok.
-
-%% simple app test
--ifdef(TEST).
-
-simple_test() ->
-    ok = application:start(tika_server),
-    ?assertNot(undefined == whereis(tika_server_sup)).
-
--endif.

@@ -52,7 +52,7 @@ handle_events(Msg) ->
     end.
 
 updateUser(User)->
-    UserRec=tika_user:json2user(User).
+   tika_user:json2user(User).
 
 connectUser(null)-> 
     User=tika_user:create(),

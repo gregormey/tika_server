@@ -3,31 +3,14 @@
 -include_lib("eunit/include/eunit.hrl").
 
 user()->
-	#user{
-		id=1,
-		displayName = "Maike Meyenberg",
-		mail="maike@meyenberg.de"
-	}.
-
-event()->
-	#event{
-		title="Test Event"
-	}.
-
-invite_test() ->
-	ok=application:start(asn1),
-	ok=application:start(public_key),
-	ok=application:start(ssl),
-	Reply=tika_user:invite(user(),event()),
-	?_assert(string:str(binary_to_list(Reply) , "OK")>=0).
+	#user{id=1,displayName = "Maike Meyenberg",mail="maike@meyenberg.de"}.
 
 start() ->
 	stopped=tika_database:install(test),
-	{ok, Pid} = tika_database:start_link(),
-	Pid.
+	tika:start_server(test).
  
 stop(Pid) ->
-	tika_database:stop().
+	ok.
 
 tika_database_test_() ->
 	{foreach,
@@ -36,7 +19,9 @@ tika_database_test_() ->
 		[
 		fun () ->
 			[
-				create()
+				create(),
+				user2json(),
+				json2user()
 			]
 		end
 		]
@@ -46,13 +31,23 @@ create() ->
 	User=tika_user:create(),
 	?_assert(1==User#user.id).
 
-user2json_test()->
+user2json()->
 	{[
 	  {<<"id">>,1},
 	  {<<"displayName">>,<<"Maike Meyenberg">>},
 	  {<<"mail">>,<<"maike@meyenberg.de">>}
 	 ]}=tika_user:user2json(user()).
 
+json2user()->
+	User=user(),
+	UserJson=tika_user:json2user(
+		{[
+	  		{<<"id">>,1},
+	  		{<<"displayName">>,<<"Maike Meyenberg">>},
+	  		{<<"mail">>,<<"maike@meyenberg.de">>}
+	 	]}
+	),
+	User=UserJson.
 
 
 

@@ -65,14 +65,14 @@ init([]) ->
 
 %% call handler to create user with a new id 
 handle_call(create, _From, Tab) ->
-	User=tika_database:create(user,#user{}),
-	tika_process:reg(user,User#user.id),
+	[User]=tika_database:create(user,#user{}),
+	tika_process:reg(user,User),
 	{reply, User, Tab};
 
 handle_call({load,User}, _From, Tab) ->
 	case tika_database:find(id,user,User#user.id) of
 		not_found -> not_found;
-		User -> tika_process:reg(user,User#user.id) 
+		[User] -> tika_process:reg(user,User) 
 	end,
 	{reply, User, Tab};
 

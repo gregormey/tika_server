@@ -20,8 +20,9 @@
 
 -include("records.hrl").
 
--type process_event() :: #process_event {}.
--type process_user() :: #process_user {}.
+
+-type user() :: #user {}.
+-type event() :: #event {}.
 
 %% Interfaces
 -spec start() -> {ok, pid()} | {error, any()}.
@@ -30,13 +31,13 @@ start()-> gen_server:start_link({local,?MODULE},?MODULE,[], []).
 -spec start_link() -> {ok, pid()} | {error, any()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
--spec reg(atom(),non_neg_integer()) -> tuple().
-reg(Record,Id) ->
-	gen_server:call(?MODULE,{reg,Record,Id}).
+-spec reg(atom(),user()|event()) -> tuple().
+reg(Record,Object) ->
+	gen_server:call(?MODULE,{reg,Record,Object}).
 
 -spec unreg(atom(),non_neg_integer()) -> tuple().
-unreg(Record,Id) ->
-	gen_server:call(?MODULE,{unreg,Record,Id}).
+unreg(Record,Object) ->
+	gen_server:call(?MODULE,{unreg,Record,Object}).
 
 -spec stop() -> ok.
 stop()-> gen_server:call(?MODULE, stop).
@@ -46,26 +47,26 @@ init([]) ->
 	mnesia:wait_for_tables([process_user,process_event],20000),
     {ok, ?MODULE}.
 
-handle_call({reg,user,Id}, _From, Tab) ->
+handle_call({reg,user,User}, _From, Tab) ->
 	{reply, 
-		case tika_database:find(id,process_user,Id) of
-			not_found -> {ok, Pid} = tika_user_fsm:start_link(),
-						tika_database:write(process_user,#process_user{id=Id,pid=Pid});
+		case tika_database:find(id,process_user,User#user.id) of
+			not_found -> {ok, Pid} = tika_user_fsm:start_link(User),
+						tika_database:write(process_user,#process_user{id=User#user.id,pid=Pid});
 			Result -> Result
 		end
 	, Tab};
-handle_call({reg,event,Id}, _From, Tab) ->
+handle_call({reg,event,Event}, _From, Tab) ->
 	{reply, 
-		case tika_database:find(id,process_event,Id) of
-			not_found -> {ok, Pid} = tika_event_fsm:start_link(),
-						tika_database:write(process_event,#process_event{id=Id,pid=Pid});
+		case tika_database:find(id,process_event,Event#event.id) of
+			not_found -> {ok, Pid} = tika_event_fsm:start_link(Event),
+						tika_database:write(process_event,#process_event{id=Event#event.id,pid=Pid});
 			Result -> Result
 		end
 	, Tab};
-handle_call({unreg,user,Id}, _From, Tab) ->
-	{reply, tika_database:delete(process_user,tika_database:find(id,process_user,Id)), Tab};
-handle_call({unreg,event,Id}, _From, Tab) ->
-	{reply, tika_database:delete(process_event,tika_database:find(id,process_event,Id)), Tab};
+handle_call({unreg,user,User}, _From, Tab) ->
+	{reply, tika_database:delete(process_user,tika_database:find(id,process_user,User#user.id)), Tab};
+handle_call({unreg,event,Event}, _From, Tab) ->
+	{reply, tika_database:delete(process_event,tika_database:find(id,process_event,Event#event.id)), Tab};
 
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.

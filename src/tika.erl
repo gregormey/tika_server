@@ -26,17 +26,17 @@ set_dbPath()->
 %starts all required OTP applications
 -spec start_applications() -> ok.
 start_applications() ->
-	ok=aplication:start(mnesia),
-	ok=application:start(asn1),
+	application:start(mnesia),
+	application:start(asn1),
 	application:start(crypto),
-	ok=application:start(public_key),
-	ok=application:start(ssl),
-	ok=application:start(gproc),
-	ok=application:start(cowlib),
-	ok=application:start(ranch),
-	ok=application:start(cowboy),
+	application:start(public_key),
+	application:start(ssl),
+	application:start(gproc),
+	application:start(cowlib),
+	application:start(ranch),
+	application:start(cowboy),
 	%ok=application:start(leptus),
-	ok=application:start(tika_server),
+	application:start(tika_server),
 	%leptus:start_http(tika_server),
 	ok.
 

@@ -5,7 +5,7 @@
 <title>.eunit/tika_server_app.COVER.html</title>
 </head><body style='background-color: white; color: black'>
 <pre>
-File generated from /Users/gregor/tika_server/.eunit/tika_server_app.erl by COVER 2015-01-04 at 17:24:36
+File generated from /Users/gregor/tika_server/.eunit/tika_server_app.erl by COVER 2015-01-25 at 18:04:35
 
 ****************************************************************************
 
@@ -25,19 +25,20 @@ File generated from /Users/gregor/tika_server/.eunit/tika_server_app.erl by COVE
         |  %% Application callbacks
         |  %% ===================================================================
         |  
-        |  start(_StartType, _StartArgs) -&gt;
+        |  start(_StartType, _StartArgs) -&gt;	 
+     1..|  	Dispatch = cowboy_router:compile([
+        |  	{'_', [
+        |  		{"/websocket",tika_websocket, []}
+        |  	]}
+        |  	]),
+        |  	%%websocket port
+     1..|  	Port = 10010,
+     1..|  	{ok, _} = cowboy:start_http(http, 100, [{port, Port}],
+        |  		[{env, [{dispatch, Dispatch}]}]),
      1..|      tika_server_sup:start_link().
         |  
         |  stop(_State) -&gt;
-<font color=red>     0..|      ok.</font>
-        |  
-        |  %% simple app test
-        |  -ifdef(TEST).
-        |  
-        |  simple_test() -&gt;
-     1..|      ok = application:start(tika_server),
-     1..|      ?assertNot(undefined == whereis(tika_server_sup)).
-        |  
-        |  -endif.</pre>
+     1..|      ok.
+</pre>
 </body>
 </html>
