@@ -8,7 +8,10 @@
 -record(user,{
 	id :: non_neg_integer(),
 	displayName = "" :: string(),
-	mail = "" :: string()
+	mail = "" :: string(),
+	created :: non_neg_integer(),
+	invited :: non_neg_integer(),
+	registered :: non_neg_integer()
 }).
 
 -record(answers,{

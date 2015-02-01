@@ -12,6 +12,7 @@
 -export([write/2]).
 -export([create/2]).
 -export([delete/2]).
+-export([unixTS/0]).
 
 
 %% record to generate unique ids
@@ -78,11 +79,17 @@ delete(Table,Record) ->
 	[Table,Id|_] = tuple_to_list(Record),
 	case find(Table,filterById(Id))of
 		not_found -> not_found;
-		Result -> {atomic, Val} = mnesia:transaction(
+		[Result] -> {atomic, Val} = mnesia:transaction(
 					fun () -> mnesia:delete_object(Result) end
 					),
 					Val
 	end.
+
+%% generates a POSIX timestamp
+-spec unixTS()-> non_neg_integer().
+unixTS()->
+	{Mega, Secs, _} = os:timestamp(),
+	Mega*1000000 + Secs.
 
 %%% Private Functions
 filterById(Id)->

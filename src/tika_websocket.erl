@@ -51,8 +51,13 @@ handle_events(Msg) ->
             _ -> Msg
     end.
 
-updateUser(User)->
-   tika_user:json2user(User).
+updateUser(UserJson)->
+   User=tika_user:json2user(UserJson),
+   Pid=tika_process:id2pid(user,User#user.id),
+   case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
+        ok -> format_client_response("registerUser",{[{<<"msg">>,<<"ok">>}]});
+        user_exists -> format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
+   end.
 
 connectUser(null)-> 
     User=tika_user:create(),

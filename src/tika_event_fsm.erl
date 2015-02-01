@@ -190,4 +190,5 @@ notice(Event=#event{}, Str, Args) ->
     Str,
     Args,
     Event,
-    erlang:display(Str).
+    %erlang:display(Str).
+    Str.

@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([create/0,load/1,invite/2,user2json/1,json2user/1,edit/2]).
+-export([create/0,load/1,load/2,user2json/1,json2user/1]).
 
 %% default interfaces
 -export([start/0]).
@@ -40,19 +40,15 @@ create() -> gen_server:call(?MODULE,create).
 -spec load(user()) -> user()| not_found.
 load(User) -> gen_server:call(?MODULE,{load,User}).
 
--spec invite(user(),event()) -> string().
-invite(User, Event) -> gen_server:call(?MODULE,{invite,User,Event}).
+-spec load(mail,string()) -> user()| not_found.
+load(mail,Mail) -> gen_server:call(?MODULE,{load,mail,Mail}).
+
 
 -spec user2json(user()) -> tuple().
 user2json(User) -> gen_server:call(?MODULE,{user2json,User}).
 
 -spec json2user(tuple()) -> user().
 json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
-
--spec edit(user(),{atom(),string()}) -> user().
-edit(User=#user{},{displayName,DisplayName}) -> gen_server:call(?MODULE,{edit,User,displayName,DisplayName});
-
-edit(User=#user{},{mail,Mail}) -> gen_server:call(?MODULE,{edit,User,mail,Mail}).
 
 %% Internal functions
 
@@ -65,19 +61,31 @@ init([]) ->
 
 %% call handler to create user with a new id 
 handle_call(create, _From, Tab) ->
-	[User]=tika_database:create(user,#user{}),
+	[User]=tika_database:create(user,#user{created=tika_database:unixTS()}),
 	tika_process:reg(user,User),
 	{reply, User, Tab};
 
 handle_call({load,User}, _From, Tab) ->
-	case tika_database:find(id,user,User#user.id) of
-		not_found -> not_found;
-		[FoundUser] -> tika_process:reg(user,FoundUser) 
-	end,
-	{reply, User, Tab};
+	{reply, 
+		case tika_database:find(id,user,User#user.id) of
+			not_found -> not_found;
+			[FoundUser] -> tika_process:reg(user,FoundUser),
+							FoundUser 
+		end
+	, Tab};
 
-handle_call({invite,#user{mail=Mail, displayName=DisplayName},#event{title=Title}}, _From, Tab) ->
-	{reply, tika_mail:send_invite(Mail,DisplayName,Title), Tab};
+
+handle_call({load,mail,Mail}, _From, Tab) ->
+	Fun=fun(R) ->
+			Mail==R#user.mail
+	end,
+	{reply,
+		case tika_database:find(user,Fun) of
+			not_found -> not_found;
+			[FoundUser] -> FoundUser
+		end
+	 , Tab};
+
 handle_call({json2user,Json}, _From, Tab) ->
 	{[
 	  {_,Id},
@@ -100,10 +108,10 @@ handle_call({user2json,User}, _From, Tab) ->
 	  		{<<"mail">>,list_to_binary(User#user.mail)}
 	 	]}
 	, Tab};
-handle_call({edit,User,displayName,DisplayName}, _From, Tab) ->
-	{reply, User#user{displayName=DisplayName}, Tab};
-handle_call({edit,User,mail,Mail}, _From, Tab) ->
-	{reply, User#user{mail=Mail}, Tab};
+
+
+
+
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.
 

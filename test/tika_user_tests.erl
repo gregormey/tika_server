@@ -22,7 +22,8 @@ tika_database_test_() ->
 				create(),
 				user2json(),
 				json2user(),
-				load()
+				load(),
+				update()
 			]
 		end
 		]
@@ -30,7 +31,7 @@ tika_database_test_() ->
 
 create() ->
 	User=tika_user:create(),
-	?_assert(1==User#user.id).
+	?assert(1==User#user.id).
 
 user2json()->
 	{[
@@ -52,7 +53,24 @@ json2user()->
 
 load()->
 	User=tika_user:load(user()),
-	?_assert(1==User#user.id).
+	?assert(1==User#user.id).
+
+update()->
+   User=tika_user:create(),
+   Pid=tika_process:id2pid(user,User#user.id),
+
+   User2=tika_user:create(),
+   Pid2=tika_process:id2pid(user,User2#user.id),
+
+   ?assert(created==tika_user_fsm:statename(Pid)),
+   ?assert(ok==tika_user_fsm:update(Pid,{"test","test"})),
+   ?assert(registered==tika_user_fsm:statename(Pid)),
+   ?assert(ok==tika_user_fsm:update(Pid,{"test","test"})),
+
+   ?assert(user_exists==tika_user_fsm:update(Pid2,{"test","test"})),
+   ?assert(created==tika_user_fsm:statename(Pid2)).
+
+
 
 
 
