@@ -10,6 +10,7 @@ start() ->
 	tika:start_server(test).
  
 stop(Pid) ->
+	tika:stop_server(),
 	ok.
 
 tika_database_test_() ->

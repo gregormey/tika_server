@@ -7,7 +7,13 @@
 -export([websocket_info/3]).
 -export([websocket_terminate/3]).
 
+%% custom
+-export([sendEventToRemote/2]).
+
 -include("records.hrl").
+
+-type user() :: #user {}.
+-type event() :: #event {}.
 
 init({tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_websocket}.
@@ -40,6 +46,14 @@ websocket_info(_Info, Req, State) ->
 websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
+%% Remote Interface
+-spec sendEventToRemote(user(),event()) -> true.
+sendEventToRemote(User,Event) ->
+    erlang:display("Send Data To:"++binary_to_list(User#user.id)),
+    {_PID, Data}=gproc:send({websocket,User#user.id}, {self(), 
+                            format_client_response("Invite",tika_event:event2json(Event))}),
+    true.
+
 %% events
 %% Proxy for possible events
 -spec handle_events(binary()) -> true | any().
@@ -47,10 +61,12 @@ handle_events(Msg) ->
     erlang:display(jiffy:decode(Msg)),
     case jiffy:decode(Msg) of
         {[{<< "Connect" >> , User}]} -> connectUser(User);
-        {[{<< "Update" >> , User}]} -> updateUser(User);
+        {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
+        {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
             _ -> Msg
     end.
 
+%% User Callbacks
 updateUser(UserJson)->
    User=tika_user:json2user(UserJson),
    Pid=tika_process:id2pid(user,User#user.id),
@@ -68,6 +84,10 @@ connectUser(UserJson)->
     gproc:reg({p, l, {websocket,User#user.id}}),
     true.
 
+%% Event Callbacks
+createEvent(EventJson)->
+    tika_event:create(tika_event:json2event(EventJson)),
+    true.
 
 
 %%% INTERNAL

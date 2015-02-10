@@ -6,7 +6,6 @@
 				confirm_date/2, 
 				deconfirm_date/2, 
 				reject/2,
-				edit/2,
 				fix/2,
 				over/1,
 				stop/2]).
@@ -41,18 +40,6 @@ deconfirm_date(OwnPid,{User,Day_ts}) ->
 reject(OwnPid,{User}) ->
 	gen_fsm:send_event(OwnPid,{reject,User}).
 
-edit(OwnPid,{title,Title}) ->
-	gen_fsm:send_event(OwnPid,{edit,title,Title});
-edit(OwnPid,{description,Description}) ->
-	gen_fsm:send_event(OwnPid,{edit,description,Description});
-edit(OwnPid,{addContact,User=#user{}}) ->
-	gen_fsm:send_event(OwnPid,{edit,addContact,User});
-edit(OwnPid,{removeContact,User=#user{}}) ->
-	gen_fsm:send_event(OwnPid,{edit,removeContact,User});
-edit(OwnPid,{addDate,Day=#day{}}) ->
-	gen_fsm:send_event(OwnPid,{edit,addDate,Day});
-edit(OwnPid,{removeDate,Day=#day{}}) ->
-	gen_fsm:send_event(OwnPid,{edit,removeDate,Day}).
 
 
 fix(OwnPid,{Day}) ->
@@ -70,6 +57,7 @@ stop(OwnPid,cancel) ->
 %% Set Event FSM to open state
 -spec init(Event::event()) -> {ok, open, event()}.
 init(Event=#event{}) ->
+	invite_user(Event,Event#event.contacts),
 	{ok, open, Event}.
 
 %%% STATE CALLBACKS
@@ -88,35 +76,6 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 open({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event);
 
-open({edit,title,Title},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{title,Title}),
-	notice(ModEvent,"Edit Event Title",[Title]),
-	{next_state,open,ModEvent};
-
-open({edit,description,Description},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{description,Description}),
-	notice(ModEvent,"Edit Event Description",[Description]),
-	{next_state,open,ModEvent};
-
-open({edit,addContact,User=#user{}},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{addContact,User}),
-	notice(ModEvent,"Edit Event add Contact",[User]),
-	{next_state,open,ModEvent};
-
-open({edit,removeContact,User=#user{}},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{removeContact,User}),
-	notice(ModEvent,"Edit Event remove Contact",[User]),
-	{next_state,open,ModEvent};
-
-open({edit,addDate,Day=#day{}},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{addDate,Day}),
-	notice(ModEvent,"Edit Event add Date",[Day]),
-	{next_state,open,ModEvent};
-
-open({edit,removeDate,Day=#day{}},Event=#event{}) ->
-	ModEvent=tika_event:edit(Event,{removeDate,Day}),
-	notice(ModEvent,"Edit Event remove Date",[Day]),
-	{next_state,open,ModEvent};
 
 open({fix,Day=#day{}},Event=#event{}) ->
 	ModEvent=tika_event:fix(Event,Day),
@@ -163,11 +122,25 @@ code_change(_OldVsn, StateName, Data, _Extra) ->
 
 %% Event over.
 terminate(normal, ready, Event=#event{}) ->
-    notice(Event, "FSM leaving.", []);
-terminate(_Reason, _StateName, _StateData) ->
+    ok=tika_process:unreg(event,Event),
+    notice(User, "FSM leaving.", []);  
+terminate(_Reason, _StateName, Event=#event{}) ->
+    ok=tika_process:unreg(event,Event),
     ok.
 
 %%% PRIVATE FUNCTIONS
+invite_user(Event,[])-> Event;
+invite_user(Event,[User|T])->
+	InviteUser = case tika_user:load(mail,User#user.mail) of 
+					not_found -> tika_user:create();
+					[FoundUser] -> FoundUser
+				end,
+	Pid=tika_process:id2pid(user,InviteUser#user.id),
+	tika_user_fsm:invite(Pid,Event),
+	invite_user(Event,T).
+
+
+
 reject_event(User=#user{},Event=#event{}) ->
 	ModEvent=tika_event:reject_event(Event,User),
 	case lists:flatlength(ModEvent#event.contacts)>0 of

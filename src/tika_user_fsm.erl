@@ -5,6 +5,7 @@
 -export([start/1, start_link/1, 
             update/2,
             statename/1,
+            invite/2,
             user/1,
             stop/2
 		]).
@@ -15,6 +16,7 @@
 			created/2,
             created/3,
 			invited/2,
+            invited/3,
 			registered/2,
             registered/3]).
 
@@ -34,6 +36,9 @@ start_link(User=#user{}) ->
 %%% EVENTS
 update(OwnPid,{DisplayName,Mail}) -> 
     gen_fsm:sync_send_event(OwnPid,{update,DisplayName,Mail}).
+
+invite(OwnPid,Event)->
+    gen_fsm:send_event(OwnPid,{invite,Event}).    
 
 %%%% INFO EVENTS
 statename(OwnPid) ->
@@ -59,8 +64,6 @@ init(User=#user{}) ->
 
 %%% STATE CALLBACKS
 
-
--spec created({update,string(),string()}, User::user()) ->  {next_state,registered,user()} | {next_state,created,user()}.
 created({update,DisplayName,Mail},From,User=#user{}) ->
     UpdateUser= fun() ->
        [NewUser]=tika_database:write(user,User#user{
@@ -78,29 +81,41 @@ created({update,DisplayName,Mail},From,User=#user{}) ->
                     end
     end;
 
+
 created(Event, _From,Data) ->
     unexpected(Event, created),
     {next_state, created, Data}.
 
+
+created({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
+    ok=tika_mail:send_invite(Mail,UserName,EventTitle),
+    [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
+    {next_state,invited,InvitedUser};    
+
 created(Event, Data) ->
-	unexpected(Event, created),
+    unexpected(Event, created),
     {next_state, created, Data}.
 
-
--spec invited({update,string(),string()}, User::user()) ->  {next_state,registered,user()}.
-invited({update,DisplayName,Mail},User=#user{}) ->
+invited({update,DisplayName,Mail},From,User=#user{}) ->
       [NewUser] = tika_database:write(user,User#user{
                                     displayName=DisplayName,
                                     mail=Mail,
                                     registered=tika_database:unixTS()
                             }),
-      {next_state,invited,NewUser};
+      {reply,ok,registered,NewUser};
+
+invited(Event, _From,Data) ->
+    unexpected(Event, created),
+    {next_state, created, Data}.
+
+invited({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
+    ok=tika_mail:send_invite(Mail,UserName,EventTitle),
+    {next_state,invited,User};  
 
 invited(Event, Data) ->
-	unexpected(Event, invited),
+    unexpected(Event, invited),
     {next_state, invited, Data}.
 
--spec registered({update,string(),string()}, User::user()) ->  {next_state,registered,user()}.
 registered({update,DisplayName,Mail},From,User=#user{}) ->
     UpdateUser= fun() ->
        [NewUser]=tika_database:write(user,User#user{
@@ -121,8 +136,13 @@ registered(Event, _From, Data) ->
     unexpected(Event, invited),
     {next_state, registered, Data}.
 
+
+registered({invite,Event=#event{}},User=#user{}) ->
+    tika_websocket:sendEventToRemote(Event,User),
+    {next_state,registered,User}; 
+
 registered(Event, Data) ->
-	unexpected(Event, invited),
+    unexpected(Event, invited),
     {next_state, registered, Data}.
 
 %% stop the user fsm.

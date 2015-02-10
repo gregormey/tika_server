@@ -28,7 +28,8 @@
 		contacts=  [] :: list(),
 		appointment=0 :: 0 | #day {},
 		answer :: 0 | 1,
-		creator :: #user {}
+		creator :: #user {},
+		created :: non_neg_integer()
 	}).
 %% records to store process ids
 -record( process_user, {id,pid} ).
