@@ -38,7 +38,7 @@ update(OwnPid,{DisplayName,Mail}) ->
     gen_fsm:sync_send_event(OwnPid,{update,DisplayName,Mail}).
 
 invite(OwnPid,Event)->
-    gen_fsm:send_event(OwnPid,{invite,Event}).    
+    gen_fsm:sync_send_event(OwnPid,{invite,Event}).    
 
 %%%% INFO EVENTS
 statename(OwnPid) ->
@@ -81,16 +81,15 @@ created({update,DisplayName,Mail},From,User=#user{}) ->
                     end
     end;
 
+created({invite,Event=#event{title=EventTitle}},From, User=#user{mail=Mail,displayName=UserName}) ->
+    tika_mail:send_invite(Mail,UserName,EventTitle),
+    [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
+    {reply,ok,invited,InvitedUser};    
 
 created(Event, _From,Data) ->
     unexpected(Event, created),
     {next_state, created, Data}.
 
-
-created({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
-    erlang:display(tika_mail:send_invite(Mail,UserName,EventTitle)),
-    [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
-    {next_state,invited,InvitedUser};    
 
 created(Event, Data) ->
     unexpected(Event, created),
@@ -104,13 +103,14 @@ invited({update,DisplayName,Mail},From,User=#user{}) ->
                             }),
       {reply,ok,registered,NewUser};
 
+invited({invite,Event=#event{title=EventTitle}}, From, User=#user{mail=Mail,displayName=UserName}) ->
+    tika_mail:send_invite(Mail,UserName,EventTitle),
+    {reply,ok,invited,User};  
+
 invited(Event, _From,Data) ->
     unexpected(Event, created),
     {next_state, created, Data}.
 
-invited({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
-    tika_mail:send_invite(Mail,UserName,EventTitle),
-    {next_state,invited,User};  
 
 invited(Event, Data) ->
     unexpected(Event, invited),
@@ -132,14 +132,15 @@ registered({update,DisplayName,Mail},From,User=#user{}) ->
                     end
     end;
 
+registered({invite,Event=#event{}},From, User=#user{}) ->
+    tika_websocket:sendEventToRemote(Event,User),
+    {reply,ok,registered,User}; 
+
+
 registered(Event, _From, Data) ->
     unexpected(Event, invited),
     {next_state, registered, Data}.
 
-
-registered({invite,Event=#event{}},User=#user{}) ->
-    tika_websocket:sendEventToRemote(Event,User),
-    {next_state,registered,User}; 
 
 registered(Event, Data) ->
     unexpected(Event, invited),

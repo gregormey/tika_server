@@ -15,6 +15,7 @@
 			terminate/3, code_change/4,
 			% custom state names
 			open/2,
+			open/3,
 			fixed/2]).
 
 -include("records.hrl").
@@ -33,7 +34,7 @@ start_link(Event=#event{}) ->
 
 %%% EVENTS
 invite(OwnPid) ->
-	gen_fsm:send_event(OwnPid,invite).
+	gen_fsm:sync_send_event(OwnPid,invite).
 
 confirm_date(OwnPid,{User,Day_ts}) ->
 	gen_fsm:send_event(OwnPid,{confirm_date,User,Day_ts}).
@@ -64,8 +65,6 @@ init(Event=#event{}) ->
 	{ok, open, Event}.
 
 %%% STATE CALLBACKS
-open(invite,Event=#event{contacts=Contacts})->
-	{next_state,open,invite_user(Event,Contacts)};
 
 open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	ModEvent=tika_event:add_user_to_event(Event,User,Day_ts),
@@ -90,6 +89,15 @@ open({fix,Day=#day{}},Event=#event{}) ->
 open(Event, Data) ->
 	unexpected(Event, open),
     {next_state, open, Data}.
+
+
+open(invite,From,Event=#event{contacts=Contacts})->
+	{reply,ok,open,invite_user(Event,Contacts)};
+
+open(Event, _From, Data) ->
+	unexpected(Event, open),
+    {next_state, open, Data}.
+
 
 fixed({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event);
@@ -142,7 +150,7 @@ invite_user(Event,[User|T])->
 					[FoundUser] -> FoundUser
 				end,
 	Pid=tika_process:id2pid(user,InviteUser#user.id),
-	tika_user_fsm:invite(Pid,Event),
+	ok=tika_user_fsm:invite(Pid,Event),
 	invite_user(Event,T).
 
 

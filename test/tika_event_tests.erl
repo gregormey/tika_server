@@ -97,7 +97,7 @@ tika_database_test_() ->
 			[
 				json2event(),
 				event2json(),
-				create()
+				invite()
 			]
 		end
 		]
@@ -117,10 +117,18 @@ event2json()->
 	EventJson2=jiffy:decode(getEventJsonStr()),
 	EventJson1=EventJson2.
 
-create()->
+invite()->
 	Event=tika_event:create(event()),
+	[Contact]= Event#event.contacts,
+
 	Pid=tika_process:id2pid(event,Event#event.id),
-	tika_event_fsm:invite(Pid).
+	tika_event_fsm:invite(Pid),
+	
+	User=tika_user:load(mail,Contact#user.mail),
+	PidUser=tika_process:id2pid(user,User#user.id),
+	?assert(invited==tika_user_fsm:statename(PidUser)).
+
+
 
 
 
