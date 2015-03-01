@@ -88,7 +88,7 @@ created(Event, _From,Data) ->
 
 
 created({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
-    ok=tika_mail:send_invite(Mail,UserName,EventTitle),
+    erlang:display(tika_mail:send_invite(Mail,UserName,EventTitle)),
     [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
     {next_state,invited,InvitedUser};    
 
@@ -109,7 +109,7 @@ invited(Event, _From,Data) ->
     {next_state, created, Data}.
 
 invited({invite,Event=#event{title=EventTitle}},User=#user{mail=Mail,displayName=UserName}) ->
-    ok=tika_mail:send_invite(Mail,UserName,EventTitle),
+    tika_mail:send_invite(Mail,UserName,EventTitle),
     {next_state,invited,User};  
 
 invited(Event, Data) ->

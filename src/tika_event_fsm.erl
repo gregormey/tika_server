@@ -2,7 +2,8 @@
 -behaviour(gen_fsm).
 
 %% public API
--export([start/1, start_link/1, 
+-export([start/1, start_link/1,
+				invite/1, 
 				confirm_date/2, 
 				deconfirm_date/2, 
 				reject/2,
@@ -31,6 +32,9 @@ start_link(Event=#event{}) ->
 	gen_fsm:start_link(?MODULE, Event, []).
 
 %%% EVENTS
+invite(OwnPid) ->
+	gen_fsm:send_event(OwnPid,invite).
+
 confirm_date(OwnPid,{User,Day_ts}) ->
 	gen_fsm:send_event(OwnPid,{confirm_date,User,Day_ts}).
 
@@ -57,11 +61,12 @@ stop(OwnPid,cancel) ->
 %% Set Event FSM to open state
 -spec init(Event::event()) -> {ok, open, event()}.
 init(Event=#event{}) ->
-	invite_user(Event,Event#event.contacts),
 	{ok, open, Event}.
 
 %%% STATE CALLBACKS
--spec open({confirm_date, User::user(), Day_ts::non_neg_integer()}, Event::event()) ->  {next_state,open,event()}.
+open(invite,Event=#event{contacts=Contacts})->
+	{next_state,open,invite_user(Event,Contacts)};
+
 open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	ModEvent=tika_event:add_user_to_event(Event,User,Day_ts),
 	notice(ModEvent,"Add User To Event",[Day_ts]),
@@ -123,16 +128,17 @@ code_change(_OldVsn, StateName, Data, _Extra) ->
 %% Event over.
 terminate(normal, ready, Event=#event{}) ->
     ok=tika_process:unreg(event,Event),
-    notice(User, "FSM leaving.", []);  
+    notice(Event, "FSM leaving.", []);  
 terminate(_Reason, _StateName, Event=#event{}) ->
     ok=tika_process:unreg(event,Event),
     ok.
 
 %%% PRIVATE FUNCTIONS
-invite_user(Event,[])-> Event;
+invite_user(Event,[])-> 
+	Event;
 invite_user(Event,[User|T])->
 	InviteUser = case tika_user:load(mail,User#user.mail) of 
-					not_found -> tika_user:create();
+					not_found -> tika_user:create(User);
 					[FoundUser] -> FoundUser
 				end,
 	Pid=tika_process:id2pid(user,InviteUser#user.id),

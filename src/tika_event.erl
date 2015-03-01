@@ -143,7 +143,6 @@ handle_call({event2json,Event}, _From, Tab) ->
 
 handle_call({create,Event}, _From, Tab) -> 
 	[NewEvent]=tika_database:create(event,Event#event{created=tika_database:unixTS()}),
-	tika_process:reg(event,NewEvent),
 	{reply, NewEvent, Tab};
 
 handle_call(stop, _From, Tab) ->

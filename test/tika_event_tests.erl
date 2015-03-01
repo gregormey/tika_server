@@ -118,7 +118,9 @@ event2json()->
 	EventJson1=EventJson2.
 
 create()->
-	Event=tika_event:create(event()).
+	Event=tika_event:create(event()),
+	Pid=tika_process:id2pid(event,Event#event.id),
+	tika_event_fsm:invite(Pid).
 
 
 

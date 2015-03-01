@@ -111,7 +111,8 @@ process(event,Id) ->
 						case tika_database:find(id,event,Id) of
 							not_found -> event_not_found;
 							[Event] -> {ok, Pid} = tika_event_fsm:start_link(Event),
-										tika_database:write(process_event,#process_event{id=Event#event.id,pid=Pid})
+										[Process]=tika_database:write(process_event,#process_event{id=Event#event.id,pid=Pid}),
+										Process
 						end;
 			[Process] -> Process
 	end.

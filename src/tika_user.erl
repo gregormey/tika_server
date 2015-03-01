@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([create/0,load/1,load/2,user2json/1,json2user/1]).
+-export([create/0,create/1,load/1,load/2,user2json/1,json2user/1]).
 
 %% default interfaces
 -export([start/0]).
@@ -37,6 +37,9 @@ stop()-> gen_server:call(?MODULE, stop).
 -spec create() -> user().
 create() -> gen_server:call(?MODULE,create).
 
+-spec create(user()) -> user().
+create(User) -> gen_server:call(?MODULE,{create,User}).
+
 -spec load(user()) -> user()| not_found.
 load(User) -> gen_server:call(?MODULE,{load,User}).
 
@@ -62,15 +65,17 @@ init([]) ->
 %% call handler to create user with a new id 
 handle_call(create, _From, Tab) ->
 	[User]=tika_database:create(user,#user{created=tika_database:unixTS()}),
-	tika_process:reg(user,User),
 	{reply, User, Tab};
+
+handle_call({create,User}, _From, Tab) ->
+	[NewUser]=tika_database:create(user,User#user{created=tika_database:unixTS()}),
+	{reply, NewUser, Tab};
 
 handle_call({load,User}, _From, Tab) ->
 	{reply, 
 		case tika_database:find(id,user,User#user.id) of
 			not_found -> not_found;
-			[FoundUser] -> tika_process:reg(user,FoundUser),
-							FoundUser 
+			[FoundUser] -> FoundUser 
 		end
 	, Tab};
 
