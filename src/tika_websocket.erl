@@ -49,9 +49,10 @@ websocket_terminate(_Reason, _Req, _State) ->
 %% Remote Interface
 -spec sendEventToRemote(user(),event()) -> true.
 sendEventToRemote(User,Event) ->
-    erlang:display("Send Data To:"++binary_to_list(User#user.id)),
-    {_PID, Data}=gproc:send({websocket,User#user.id}, {self(), 
-                            format_client_response("Invite",tika_event:event2json(Event))}),
+    Response=format_client_response("Invite",tika_event:event2json(Event)),
+    erlang:display("Send Data:"),
+    erlang:display(binary_to_list(Response)),
+    {_PID, _Data}=gproc:send({p, l, {websocket,User#user.id}}, {self(), << Response/binary >>}),
     true.
 
 %% events
@@ -80,13 +81,18 @@ connectUser(null)->
     gproc:reg({p, l, {websocket,User#user.id}}),
     format_client_response("updateUser",tika_user:user2json(User));
 connectUser(UserJson)->
-    User=tika_user:load(tika_user:json2user(UserJson)),
-    gproc:reg({p, l, {websocket,User#user.id}}),
-    true.
+    case tika_user:load(tika_user:json2user(UserJson)) of
+            not_found -> format_client_response("userNotFound",true);
+            User->tika_user:load(tika_user:json2user(UserJson)),
+                    gproc:reg({p, l, {websocket,User#user.id}}),
+                    true
+    end.
 
 %% Event Callbacks
 createEvent(EventJson)->
-    tika_event:create(tika_event:json2event(EventJson)),
+    Event=tika_event:create(tika_event:json2event(EventJson)),
+    Pid=tika_process:id2pid(event,Event#event.id),
+    ok=tika_event_fsm:invite(Pid),
     true.
 
 

@@ -64,7 +64,7 @@ init(User=#user{}) ->
 
 %%% STATE CALLBACKS
 
-created({update,DisplayName,Mail},From,User=#user{}) ->
+created({update,DisplayName,Mail},_From,User=#user{}) ->
     UpdateUser= fun() ->
        [NewUser]=tika_database:write(user,User#user{
                                     displayName=DisplayName,
@@ -81,7 +81,7 @@ created({update,DisplayName,Mail},From,User=#user{}) ->
                     end
     end;
 
-created({invite,Event=#event{title=EventTitle}},From, User=#user{mail=Mail,displayName=UserName}) ->
+created({invite,#event{title=EventTitle}},_From, User=#user{mail=Mail,displayName=UserName}) ->
     tika_mail:send_invite(Mail,UserName,EventTitle),
     [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
     {reply,ok,invited,InvitedUser};    
@@ -95,7 +95,7 @@ created(Event, Data) ->
     unexpected(Event, created),
     {next_state, created, Data}.
 
-invited({update,DisplayName,Mail},From,User=#user{}) ->
+invited({update,DisplayName,Mail},_From,User=#user{}) ->
       [NewUser] = tika_database:write(user,User#user{
                                     displayName=DisplayName,
                                     mail=Mail,
@@ -103,7 +103,7 @@ invited({update,DisplayName,Mail},From,User=#user{}) ->
                             }),
       {reply,ok,registered,NewUser};
 
-invited({invite,Event=#event{title=EventTitle}}, From, User=#user{mail=Mail,displayName=UserName}) ->
+invited({invite,#event{title=EventTitle}}, _From, User=#user{mail=Mail,displayName=UserName}) ->
     tika_mail:send_invite(Mail,UserName,EventTitle),
     {reply,ok,invited,User};  
 
@@ -116,7 +116,7 @@ invited(Event, Data) ->
     unexpected(Event, invited),
     {next_state, invited, Data}.
 
-registered({update,DisplayName,Mail},From,User=#user{}) ->
+registered({update,DisplayName,Mail},_From,User=#user{}) ->
     UpdateUser= fun() ->
        [NewUser]=tika_database:write(user,User#user{
                                     displayName=DisplayName,
@@ -132,8 +132,8 @@ registered({update,DisplayName,Mail},From,User=#user{}) ->
                     end
     end;
 
-registered({invite,Event=#event{}},From, User=#user{}) ->
-    tika_websocket:sendEventToRemote(Event,User),
+registered({invite,Event=#event{}},_From, User=#user{}) ->
+    tika_websocket:sendEventToRemote(User,Event),
     {reply,ok,registered,User}; 
 
 

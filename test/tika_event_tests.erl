@@ -122,7 +122,7 @@ invite()->
 	[Contact]= Event#event.contacts,
 
 	Pid=tika_process:id2pid(event,Event#event.id),
-	tika_event_fsm:invite(Pid),
+	ok=tika_event_fsm:invite(Pid),
 	
 	User=tika_user:load(mail,Contact#user.mail),
 	PidUser=tika_process:id2pid(user,User#user.id),

@@ -147,7 +147,7 @@ invite_user(Event,[])->
 invite_user(Event,[User|T])->
 	InviteUser = case tika_user:load(mail,User#user.mail) of 
 					not_found -> tika_user:create(User);
-					[FoundUser] -> FoundUser
+					FoundUser -> FoundUser
 				end,
 	Pid=tika_process:id2pid(user,InviteUser#user.id),
 	ok=tika_user_fsm:invite(Pid,Event),
