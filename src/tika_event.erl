@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([json2event/1, event2json/1 ,create/1]).
+-export([json2event/1, event2json/1 ,create/1, findBy/2]).
 
 %% default interfaces
 -export([start/0]).
@@ -18,9 +18,12 @@
 -export([stop/0]).
 
 
+
+
 -include("records.hrl").
 
 -type event() :: #event {}.
+-type user() :: #user {}.
 
 
 %% Interfaces
@@ -44,6 +47,9 @@ event2json(Event) -> gen_server:call(?MODULE,{event2json,Event}).
 
 -spec create(event()) -> event().
 create(Event) -> gen_server:call(?MODULE,{create,Event}).
+
+-spec findBy(atom(),user()) -> list().
+findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 
 
 %% Internal functions
@@ -144,6 +150,14 @@ handle_call({event2json,Event}, _From, Tab) ->
 handle_call({create,Event}, _From, Tab) -> 
 	[NewEvent]=tika_database:create(event,Event#event{created=tika_database:unixTS()}),
 	{reply, NewEvent, Tab};
+
+handle_call({findBy,user,User}, _From, Tab) -> 
+	Filter= fun(R) ->
+		IsUserContact=[X || X <- R#event.contacts, 
+							X#user.mail==User#user.mail],
+		length(IsUserContact) == 1
+	end,
+	{reply, tika_database:find(event,Filter), Tab};
 
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.

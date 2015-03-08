@@ -39,8 +39,8 @@ id(Table)->
 %% find specific records from table
 -spec find(atom(),fun()) -> record() |  not_found.
 find(Table,Filter)->
-	case do(qlc:q([X || X <- mnesia:table(Table), 
-							Filter(X)]))  of
+		case do(qlc:q([X || X <- mnesia:table(Table), 
+								Filter(X)]))  of
 		[] -> not_found;
 		Results -> Results
 	end.

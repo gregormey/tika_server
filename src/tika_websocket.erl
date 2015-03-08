@@ -8,7 +8,7 @@
 -export([websocket_terminate/3]).
 
 %% custom
--export([sendEventToRemote/2]).
+-export([sendEventsToRemote/2]).
 
 -include("records.hrl").
 
@@ -47,13 +47,17 @@ websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
 %% Remote Interface
--spec sendEventToRemote(user(),event()) -> true.
-sendEventToRemote(User,Event) ->
-    Response=format_client_response("Invite",tika_event:event2json(Event)),
-    erlang:display("Send Data:"),
-    erlang:display(binary_to_list(Response)),
-    {_PID, _Data}=gproc:send({p, l, {websocket,User#user.id}}, {self(), << Response/binary >>}),
-    true.
+-spec sendEventsToRemote(user(),list()) -> true.
+sendEventsToRemote(User, Events) ->
+    case Events of
+        not_found ->true;
+        _ -> Response=format_client_response("Invite",[tika_event:event2json(X) || X <- Events ]),
+            erlang:display(Events),
+            erlang:display("Send Data:"),
+            erlang:display(binary_to_list(Response)),
+            {_PID, _Data}=gproc:send({p, l, {websocket,User#user.id}}, {self(), << Response/binary >>}),
+            true
+    end. 
 
 %% events
 %% Proxy for possible events

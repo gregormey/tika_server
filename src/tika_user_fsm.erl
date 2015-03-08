@@ -133,7 +133,7 @@ registered({update,DisplayName,Mail},_From,User=#user{}) ->
     end;
 
 registered({invite,Event=#event{}},_From, User=#user{}) ->
-    tika_websocket:sendEventToRemote(User,Event),
+    tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
     {reply,ok,registered,User}; 
 
 
