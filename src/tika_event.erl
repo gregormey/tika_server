@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([json2event/1, event2json/1 ,create/1, findBy/2]).
+-export([json2event/1, event2json/1 ,create/1, update/1, findBy/2]).
 
 %% default interfaces
 -export([start/0]).
@@ -51,6 +51,8 @@ create(Event) -> gen_server:call(?MODULE,{create,Event}).
 -spec findBy(atom(),user()) -> list().
 findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 
+-spec update(event()) -> event().
+update(Event) -> gen_server:call(?MODULE,{update,Event}).
 
 %% Internal functions
 json2day(Json)->
@@ -159,6 +161,10 @@ handle_call({findBy,user,User}, _From, Tab) ->
 	end,
 	{reply, tika_database:find(event,Filter), Tab};
 
+handle_call({update,Event}, _From, Tab) -> 
+	[NewEvent]=tika_database:write(event,Event),
+	{reply, NewEvent, Tab};
+
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.
 
@@ -201,9 +207,6 @@ remove_user_from_event(Event=#event{},User=#user{},Day_ts)->
 			end),
 	Event#event{dates = lists:map(Fun,Dates)}.
 
-reject_event(Event=#event{},User=#user{}) -> 
-	Contacts=Event#event.contacts,
-	Event#event{contacts = lists:delete(User,Contacts)}.
 
 fix(Event=#event{},Day=#day{}) ->
 	Event#event{appointment=Day}.

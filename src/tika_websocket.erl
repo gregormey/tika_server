@@ -13,7 +13,7 @@
 -include("records.hrl").
 
 -type user() :: #user {}.
--type event() :: #event {}.
+
 
 init({tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_websocket}.
@@ -51,7 +51,7 @@ websocket_terminate(_Reason, _Req, _State) ->
 sendEventsToRemote(User, Events) ->
     case Events of
         not_found ->true;
-        _ -> Response=format_client_response("Invite",[tika_event:event2json(X) || X <- Events ]),
+        _ -> Response=format_client_response("updateEvents",[tika_event:event2json(X) || X <- Events ]),
             erlang:display(Events),
             erlang:display("Send Data:"),
             erlang:display(binary_to_list(Response)),
@@ -68,6 +68,7 @@ handle_events(Msg) ->
         {[{<< "Connect" >> , User}]} -> connectUser(User);
         {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
         {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
+        {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
             _ -> Msg
     end.
 
@@ -99,6 +100,12 @@ createEvent(EventJson)->
     ok=tika_event_fsm:invite(Pid),
     true.
 
+refuseEvent(UserJson,EventJson)->
+    User=tika_user:json2user(UserJson),
+    Event=tika_event:json2event(EventJson),
+    Pid=tika_process:id2pid(event,Event#event.id),
+    ok=tika_event_fsm:reject(Pid,{User}),
+    true.    
 
 %%% INTERNAL
 -spec format_client_response(string(),any()) -> tuple().

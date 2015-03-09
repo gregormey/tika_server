@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([create/0,create/1,load/1,load/2,user2json/1,json2user/1]).
+-export([create/0,create/1,load/1,load/2,user2json/1,json2user/1,update/1]).
 
 %% default interfaces
 -export([start/0]).
@@ -21,7 +21,7 @@
 -include("records.hrl").
 
 -type user() :: #user {}.
--type event() :: #event {}.
+
 
 %% Interfaces
 
@@ -46,12 +46,16 @@ load(User) -> gen_server:call(?MODULE,{load,User}).
 -spec load(mail,string()) -> user()| not_found.
 load(mail,Mail) -> gen_server:call(?MODULE,{load,mail,Mail}).
 
+-spec update(user()) -> user().
+update(User) -> gen_server:call(?MODULE,{update,User}).
 
 -spec user2json(user()) -> tuple().
 user2json(User) -> gen_server:call(?MODULE,{user2json,User}).
 
 -spec json2user(tuple()) -> user().
 json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
+
+
 
 %% Internal functions
 
@@ -79,6 +83,9 @@ handle_call({load,User}, _From, Tab) ->
 		end
 	, Tab};
 
+handle_call({update,User}, _From, Tab) -> 
+	[NewUser]=tika_database:write(user,User),
+	{reply, NewUser, Tab};
 
 handle_call({load,mail,Mail}, _From, Tab) ->
 	Fun=fun(R) ->

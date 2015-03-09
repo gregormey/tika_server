@@ -62,11 +62,15 @@ handle_call({reg,event,Event}, _From, Tab) ->
 		process(event,Event#event.id)
 	, Tab};
 handle_call({unreg,user,User}, _From, Tab) ->
-	[Process]=tika_database:find(id,process_user,User#user.id),
-	{reply, tika_database:delete(process_user,Process), Tab};
+	case tika_database:find(id,process_user,User#user.id) of
+		not_found -> {reply, ok, Tab};
+		[Process] -> {reply, tika_database:delete(process_user,Process), Tab}
+	end;
 handle_call({unreg,event,Event}, _From, Tab) ->
-	[Process]=tika_database:find(id,process_event,Event#event.id),
-	{reply, tika_database:delete(process_event,Process), Tab};
+	case tika_database:find(id,process_event,Event#event.id) of
+		not_found -> {reply, ok, Tab};
+		[Process] -> {reply, tika_database:delete(process_event,Process), Tab}
+	end;
 
 handle_call({id2pid,user,Id}, _From, Tab) ->
 	Process=process(user,Id),

@@ -22,7 +22,7 @@
 
 
 -type event() :: #event {}.
--type user() :: #user {}.
+
 
 
 %%% PUBLIC API
@@ -78,7 +78,7 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	{next_state,open,ModEvent};
 
 open({reject,User=#user{}},Event=#event{}) ->
-	reject_event(User,Event);
+	reject_event(User,Event,open);
 
 
 open({fix,Day=#day{}},Event=#event{}) ->
@@ -91,7 +91,7 @@ open(Event, Data) ->
     {next_state, open, Data}.
 
 
-open(invite,From,Event=#event{contacts=Contacts})->
+open(invite,_From,Event=#event{contacts=Contacts})->
 	{reply,ok,open,invite_user(Event,Contacts)};
 
 open(Event, _From, Data) ->
@@ -100,7 +100,7 @@ open(Event, _From, Data) ->
 
 
 fixed({reject,User=#user{}},Event=#event{}) ->
-	reject_event(User,Event);
+	reject_event(User,Event,fixed);
 
 fixed(over, Event=#event{}) ->
 	notice(Event,"Event is Over",[]),
@@ -154,16 +154,13 @@ invite_user(Event,[User|T])->
 	invite_user(Event,T).
 
 
-
-reject_event(User=#user{},Event=#event{}) ->
-	ModEvent=tika_event:reject_event(Event,User),
+reject_event(User=#user{},Event=#event{},State) ->
+	Contacts=Event#event.contacts,
+	ModEvent=tika_event:update(Event#event{contacts = lists:delete(User,Contacts)}),
 	case lists:flatlength(ModEvent#event.contacts)>0 of
-		false ->
-			notice(ModEvent,"Stop Event-> All User Rejected",[User]),
-			{stop, normal, Event};
-		true -> 
-			notice(ModEvent,"User Rejected",[User]),
-			{next_state,open,ModEvent}
+		false -> ok=tika_process:unreg(event,Event),
+				{stop, normal, Event};
+		true -> {next_state,State,ModEvent}
 	end.
 
 %% Unexpected allows to log unexpected messages

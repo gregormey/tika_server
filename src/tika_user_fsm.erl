@@ -66,7 +66,7 @@ init(User=#user{}) ->
 
 created({update,DisplayName,Mail},_From,User=#user{}) ->
     UpdateUser= fun() ->
-       [NewUser]=tika_database:write(user,User#user{
+       NewUser=tika_user:update(User#user{
                                     displayName=DisplayName,
                                     mail=Mail,
                                     registered=tika_database:unixTS()
@@ -83,7 +83,7 @@ created({update,DisplayName,Mail},_From,User=#user{}) ->
 
 created({invite,#event{title=EventTitle}},_From, User=#user{mail=Mail,displayName=UserName}) ->
     tika_mail:send_invite(Mail,UserName,EventTitle),
-    [InvitedUser]=tika_database:write(user,User#user{invited=tika_database:unixTS()}),
+    InvitedUser=tika_user:update(User#user{invited=tika_database:unixTS()}),
     {reply,ok,invited,InvitedUser};    
 
 created(Event, _From,Data) ->
@@ -96,7 +96,7 @@ created(Event, Data) ->
     {next_state, created, Data}.
 
 invited({update,DisplayName,Mail},_From,User=#user{}) ->
-      [NewUser] = tika_database:write(user,User#user{
+      NewUser = tika_user:update(User#user{
                                     displayName=DisplayName,
                                     mail=Mail,
                                     registered=tika_database:unixTS()
@@ -118,7 +118,7 @@ invited(Event, Data) ->
 
 registered({update,DisplayName,Mail},_From,User=#user{}) ->
     UpdateUser= fun() ->
-       [NewUser]=tika_database:write(user,User#user{
+       NewUser=tika_user:update(User#user{
                                     displayName=DisplayName,
                                     mail=Mail
                             }),
@@ -132,7 +132,7 @@ registered({update,DisplayName,Mail},_From,User=#user{}) ->
                     end
     end;
 
-registered({invite,Event=#event{}},_From, User=#user{}) ->
+registered({invite,#event{}},_From, User=#user{}) ->
     tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
     {reply,ok,registered,User}; 
 
