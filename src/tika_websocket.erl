@@ -68,6 +68,7 @@ handle_events(Msg) ->
         {[{<< "Connect" >> , User}]} -> connectUser(User);
         {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
         {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
+        {[{<< "UpdateEvent" >> , Event}]} -> updateEvent(Event);
         {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "ConfirmDate" >> , DateTs}]} -> confirmDate(User,Event,DateTs);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "DeconfirmDate" >> , DateTs}]} -> deconfirmDate(User,Event,DateTs);
@@ -102,6 +103,12 @@ createEvent(EventJson)->
     Event=tika_event:create(tika_event:json2event(EventJson)),
     Pid=tika_process:id2pid(event,Event#event.id),
     ok=tika_event_fsm:invite(Pid),
+    true.
+
+updateEvent(EventJson)->
+    Event=tika_event:json2event(EventJson),
+    Pid=tika_process:id2pid(event,Event#event.id),
+    ok=tika_event_fsm:update(Pid,{Event}),
     true.
 
 refuseEvent(UserJson,EventJson)->
