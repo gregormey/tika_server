@@ -67,8 +67,17 @@ init(Event=#event{}) ->
 %%% STATE CALLBACKS
 
 open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
-	ModEvent=tika_event:add_user_to_event(Event,User,Day_ts),
-	notice(ModEvent,"Add User To Event",[Day_ts]),
+	Dates = Event#event.dates,
+	Fun = (fun(Day=#day{})->
+				case Day#day.timestamp of
+					Day_ts -> 
+							Guests = Day#day.guests,
+							Day#day{guests = lists:append(Guests,[User])};
+					_ -> Day
+				end
+			end),
+	ModEvent=tika_event:update(Event#event{dates = lists:map(Fun,Dates)}),
+	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
 open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
@@ -152,6 +161,11 @@ invite_user(Event,[User|T])->
 	Pid=tika_process:id2pid(user,InviteUser#user.id),
 	ok=tika_user_fsm:invite(Pid,Event),
 	invite_user(Event,T).
+
+update_user_events([]) -> ok;
+update_user_events([User|T]) -> 
+	tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
+	update_user_events(T).
 
 
 reject_event(User=#user{},Event=#event{},State) ->

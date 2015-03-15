@@ -85,22 +85,6 @@ day2json(Day)->
 	end.
 
 
-json2answer(Json) ->
-	{[
-	  {_,Positive},
-	  {_,Negative}
-	 ]}=Json,
-	 
-	#answers {
-	 	positive = Positive,
-	 	negative = Negative
-	}.
-
-answers2json(Answers) ->
-	{[
-	  	{<<"positive">>,Answers#answers.positive},
-		{<<"negative">>,Answers#answers.negative}
-	]}.
 
 %% gen_server
 init([]) ->
@@ -125,7 +109,7 @@ handle_call({json2event,Json}, _From, Tab) ->
 			title=binary_to_list(Title),
 			description=binary_to_list(Description),
 			dates=[json2day(Day) ||Day <- Dates],
-			answers=json2answer(Answers),
+			answers=Answers,
 			contacts = [tika_user:json2user(User) || User <- Contacts],
 			appointment = json2day(Appointment),
 			answer = Answer,
@@ -140,7 +124,7 @@ handle_call({event2json,Event}, _From, Tab) ->
 	  		{<<"title">>,list_to_binary(Event#event.title)},
 	  		{<<"description">>,list_to_binary(Event#event.description)},
 	  		{<<"dates">>,[day2json(Day)||Day<-Event#event.dates]},
-	  		{<<"answers">>,answers2json(Event#event.answers)},
+	  		{<<"answers">>,Event#event.answers},
 	  		{<<"contacts">>,[tika_user:user2json(User)||User<-Event#event.contacts]},
 	  		{<<"appointment">>,day2json(Event#event.appointment)},
 	  		{<<"answer">>,Event#event.answer},
@@ -181,18 +165,6 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% LEGACY
-add_user_to_event(Event=#event{},User=#user{},Day_ts)->
-	Dates = Event#event.dates,
-	Fun = (fun(Day=#day{})->
-				case Day#day.timestamp of
-					Day_ts -> 
-							Guests = Day#day.guests,
-							Day#day{guests = lists:append(Guests,[User])};
-					_ -> Day
-				end
-			end),
-	Event#event{dates = lists:map(Fun,Dates)}.
 
 
 remove_user_from_event(Event=#event{},User=#user{},Day_ts)->

@@ -14,17 +14,13 @@
 	registered :: non_neg_integer()
 }).
 
--record(answers,{
-		positive :: non_neg_integer(),
-		negative :: non_neg_integer()
-	}).
 
 -record(event,{
 		id :: non_neg_integer(),
 		title :: string(),
 		description :: string(),
 		dates = [] :: list(),
-		answers :: #answers {},
+		answers=0 :: non_neg_integer(),
 		contacts=  [] :: list(),
 		appointment=0 :: 0 | #day {},
 		answer :: 0 | 1,

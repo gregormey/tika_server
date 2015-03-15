@@ -22,10 +22,7 @@ event()->
 				]
 			}
 		],
-		answers = #answers{
-				positive = 0,
-				negative = 0
-		},
+		answers = 0,
 		contacts = [
 			#user {
 					id = 11,
@@ -66,10 +63,7 @@ getEventJsonStr()->
 			            "]"++
 			         "}"++
 			      "],"++
-      "\"answers\":{  "++
-         "\"positive\":0,"++
-         "\"negative\":0"++
-      "},"++
+      "\"answers\": 0,"++
       "\"contacts\":["++  
          "{  "++
             "\"id\":11,"++

@@ -69,6 +69,7 @@ handle_events(Msg) ->
         {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
         {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
         {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
+        {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "ConfirmDate" >> , DateTs}]} -> confirmDate(User,Event,DateTs);
             _ -> Msg
     end.
 
@@ -106,6 +107,14 @@ refuseEvent(UserJson,EventJson)->
     Pid=tika_process:id2pid(event,Event#event.id),
     ok=tika_event_fsm:reject(Pid,{User}),
     true.    
+
+confirmDate(UserJson,EventJson,Day_ts)->
+    User=tika_user:json2user(UserJson),
+    Event=tika_event:json2event(EventJson),
+    Pid=tika_process:id2pid(event,Event#event.id),
+    ok=tika_event_fsm:confirm_date(Pid,{User,Day_ts}),
+    true.
+
 
 %%% INTERNAL
 -spec format_client_response(string(),any()) -> tuple().
