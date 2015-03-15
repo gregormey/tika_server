@@ -71,6 +71,7 @@ handle_events(Msg) ->
         {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "ConfirmDate" >> , DateTs}]} -> confirmDate(User,Event,DateTs);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "DeconfirmDate" >> , DateTs}]} -> deconfirmDate(User,Event,DateTs);
+        {[{<< "FixEvent" >> , Event},{<< "Day" >> , Day}]} -> fixEvent(Event,Day);
 
             _ -> Msg
     end.
@@ -124,6 +125,12 @@ deconfirmDate(UserJson,EventJson,Day_ts)->
     ok=tika_event_fsm:deconfirm_date(Pid,{User,Day_ts}),
     true.
 
+fixEvent(EventJson,DayJson)->
+    Day = tika_event:json2day(DayJson),
+    Event=tika_event:json2event(EventJson),
+    Pid=tika_process:id2pid(event,Event#event.id),
+    ok=tika_event_fsm:fix(Pid,{Day}),
+    true.
 
 %%% INTERNAL
 -spec format_client_response(string(),any()) -> tuple().

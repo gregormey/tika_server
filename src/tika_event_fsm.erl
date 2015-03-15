@@ -100,8 +100,8 @@ open({reject,User=#user{}},Event=#event{}) ->
 
 
 open({fix,Day=#day{}},Event=#event{}) ->
-	ModEvent=tika_event:fix(Event,Day),
-	notice(ModEvent,"Event Fixed",[Day]),
+	ModEvent=tika_event:update(Event#event{appointment=Day}),
+	update_user_events(ModEvent#event.contacts),
 	{next_state,fixed,ModEvent};
 
 open(Event, Data) ->

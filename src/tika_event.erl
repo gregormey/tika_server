@@ -10,21 +10,18 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([json2event/1, event2json/1 ,create/1, update/1, findBy/2]).
+-export([json2event/1, json2day/1, event2json/1 ,create/1, update/1, findBy/2]).
 
 %% default interfaces
 -export([start/0]).
 -export([start_link/0]).
 -export([stop/0]).
 
-
-
-
 -include("records.hrl").
 
 -type event() :: #event {}.
 -type user() :: #user {}.
-
+-type day() :: #day {}.
 
 %% Interfaces
 
@@ -41,6 +38,8 @@ stop()-> gen_server:call(?MODULE, stop).
 -spec json2event(tuple()) -> event().
 json2event(Json) -> gen_server:call(?MODULE,{json2event,Json}).
 
+-spec json2day(tuple()) -> day().
+json2day(Json) -> gen_server:call(?MODULE,{json2day,Json}).
 
 -spec event2json(event()) -> tuple().
 event2json(Event) -> gen_server:call(?MODULE,{event2json,Event}).
@@ -55,7 +54,7 @@ findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 update(Event) -> gen_server:call(?MODULE,{update,Event}).
 
 %% Internal functions
-json2day(Json)->
+json2day_(Json)->
 	case Json of 
 		false -> false; %% if it is appointment 0
 		_ -> 
@@ -108,13 +107,18 @@ handle_call({json2event,Json}, _From, Tab) ->
 			id=Id,
 			title=binary_to_list(Title),
 			description=binary_to_list(Description),
-			dates=[json2day(Day) ||Day <- Dates],
+			dates=[json2day_(Day) ||Day <- Dates],
 			answers=Answers,
 			contacts = [tika_user:json2user(User) || User <- Contacts],
-			appointment = json2day(Appointment),
+			appointment = json2day_(Appointment),
 			answer = Answer,
 			creator = tika_user:json2user(Creator)
 		}
+	, Tab};
+
+handle_call({json2day,Json}, _From, Tab) ->
+	{reply, 
+		json2day_(Json)
 	, Tab};
 
 handle_call({event2json,Event}, _From, Tab) ->
@@ -166,22 +170,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-remove_user_from_event(Event=#event{},User=#user{},Day_ts)->
-	Dates = Event#event.dates,
-	Fun = (fun(Day=#day{})->
-				case Day#day.timestamp of
-					Day_ts -> 
-							Guests = Day#day.guests,
-							Day#day{guests = lists:delete(User,Guests)};
-					_ -> Day
-				end
-			end),
-	Event#event{dates = lists:map(Fun,Dates)}.
-
-
-fix(Event=#event{},Day=#day{}) ->
-	Event#event{appointment=Day}.
+	
 
 
 
