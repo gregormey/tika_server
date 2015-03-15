@@ -82,8 +82,17 @@ open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
 
 open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	%%remove user from day
-	ModEvent=tika_event:remove_user_from_event(Event,User,Day_ts),
-	notice(ModEvent,"Remove User From Event",[Day_ts]),
+	Dates = Event#event.dates,
+	Fun = (fun(Day=#day{})->
+				case Day#day.timestamp of
+					Day_ts -> 
+							Guests = Day#day.guests,
+							Day#day{guests = lists:delete(User,Guests)};
+					_ -> Day
+				end
+			end),
+	ModEvent=tika_event:update(Event#event{dates = lists:map(Fun,Dates)}),
+	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
 open({reject,User=#user{}},Event=#event{}) ->
