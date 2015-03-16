@@ -10,6 +10,7 @@
 				fix/2,
 				over/1,
 				update/2,
+				update_dates/2,
 				stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -48,6 +49,10 @@ reject(OwnPid,{User}) ->
 
 update(OwnPid,{Title,Description}) ->
 	gen_fsm:send_event(OwnPid,{update,Title,Description}).
+
+update_dates(OwnPid,{Dates}) ->
+	gen_fsm:send_event(OwnPid,{update_dates,Dates}).
+
 
 fix(OwnPid,{Day}) ->
 	gen_fsm:send_event(OwnPid,{fix,Day}).
@@ -99,6 +104,11 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 
 open({update,Title,Description},Event=#event{}) ->
 	ModEvent=tika_event:update(Event#event{title=Title,description=Description}),
+	update_user_events(ModEvent#event.contacts),
+	{next_state,open,ModEvent};
+
+open({update_dates,Dates},Event=#event{}) ->
+	ModEvent=tika_event:update(Event#event{dates=Dates}),
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
