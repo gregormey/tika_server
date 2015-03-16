@@ -108,7 +108,7 @@ createEvent(EventJson)->
 updateEvent(EventJson)->
     Event=tika_event:json2event(EventJson),
     Pid=tika_process:id2pid(event,Event#event.id),
-    ok=tika_event_fsm:update(Pid,{Event}),
+    ok=tika_event_fsm:update(Pid,{Event#event.title,Event#event.description}),
     true.
 
 refuseEvent(UserJson,EventJson)->

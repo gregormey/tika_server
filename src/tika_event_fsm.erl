@@ -46,8 +46,8 @@ deconfirm_date(OwnPid,{User,Day_ts}) ->
 reject(OwnPid,{User}) ->
 	gen_fsm:send_event(OwnPid,{reject,User}).
 
-update(OwnPid,{Event}) ->
-	gen_fsm:send_event(OwnPid,{update,Event}).
+update(OwnPid,{Title,Description}) ->
+	gen_fsm:send_event(OwnPid,{update,Title,Description}).
 
 fix(OwnPid,{Day}) ->
 	gen_fsm:send_event(OwnPid,{fix,Day}).
@@ -97,8 +97,8 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
-open({update,NewEvent=#event{}},#event{}) ->
-	ModEvent=tika_event:update(NewEvent),
+open({update,Title,Description},Event=#event{}) ->
+	ModEvent=tika_event:update(Event#event{title=Title,description=Description}),
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
