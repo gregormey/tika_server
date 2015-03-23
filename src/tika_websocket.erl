@@ -69,7 +69,6 @@ handle_events(Msg) ->
         {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
         {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
         {[{<< "UpdateEvent" >> , Event}]} -> updateEvent(Event);
-        {[{<< "UpdateDates" >> , Event}]} -> updateDates(Event);
         {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "ConfirmDate" >> , DateTs}]} -> confirmDate(User,Event,DateTs);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "DeconfirmDate" >> , DateTs}]} -> deconfirmDate(User,Event,DateTs);
@@ -110,11 +109,6 @@ updateEvent(EventJson)->
     Event=tika_event:json2event(EventJson),
     Pid=tika_process:id2pid(event,Event#event.id),
     ok=tika_event_fsm:update(Pid,{Event#event.title,Event#event.description}),
-    true.
-
-updateDates(EventJson)->
-    Event=tika_event:json2event(EventJson),
-    Pid=tika_process:id2pid(event,Event#event.id),
     ok=tika_event_fsm:update_dates(Pid,{Event#event.dates}),
     true.
 
@@ -154,6 +148,6 @@ format_client_response(Event,Data)->
         {<< "data" >> , Data}
     ]}).
 
-    
+
 
 

@@ -108,7 +108,9 @@ open({update,Title,Description},Event=#event{}) ->
 	{next_state,open,ModEvent};
 
 open({update_dates,Dates},Event=#event{}) ->
-	ModEvent=tika_event:update(Event#event{dates=Dates}),
+	NewDates = [NewDate || NewDate <- Dates, false==lists:member(NewDate,Event#event.dates)],
+    KeepDates = [KeepDates || KeepDates <- Dates, lists:member(KeepDates,Event#event.dates)],
+	ModEvent=tika_event:update(Event#event{dates=lists:merge(NewDates,KeepDates)}),
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 

@@ -10,7 +10,13 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([json2event/1, json2day/1, event2json/1 ,create/1, update/1, findBy/2]).
+-export([json2event/1, 
+			json2day/1, 
+			event2json/1,
+			create/1, 
+			update/1, 
+			findBy/2
+			]).
 
 %% default interfaces
 -export([start/0]).
@@ -49,6 +55,7 @@ create(Event) -> gen_server:call(?MODULE,{create,Event}).
 
 -spec findBy(atom(),user()) -> list().
 findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
+
 
 -spec update(event()) -> event().
 update(Event) -> gen_server:call(?MODULE,{update,Event}).
