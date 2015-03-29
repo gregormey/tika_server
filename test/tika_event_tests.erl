@@ -103,8 +103,8 @@ tika_database_test_() ->
 				%event2json(),
 				%findBy(),
 				%invite(),
-				update_dates()%,
-				%update_contacts()
+				update_dates(),
+				update_contacts()
 			]
 		end
 		]
@@ -180,8 +180,13 @@ update_contacts() ->
 				}],
 	Pid=tika_process:id2pid(event,Event#event.id),
 	ok=tika_event_fsm:update_contacts(Pid,{Contacts}),
-	UpdatedEvent=tika_database:find(id,event,Event#event.id),
-	?assert(Contacts==UpdatedEvent#event.contacts),
+	[UpdatedEvent]=tika_database:find(id,event,Event#event.id),
+
+	[#user{mail=Mail1},#user{mail=Mail2}]=UpdatedEvent#event.contacts,
+
+	?assert(Mail1=="benjamin@meyenberg.de"),
+	?assert(Mail2=="maike@meyenberg.de"),
+
 	[#day {guests=Guests}]=UpdatedEvent#event.dates,
 
 	%%expect zero guest after update

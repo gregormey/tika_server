@@ -1,11 +1,11 @@
 -module(tika_mail).
--export([send_invite/3]).
+-export([send_invite/4]).
 
-send_invite(Mail, UserName,EventTitle) ->
+send_invite(Mail,CreatorName,UserName,EventTitle) ->
 	Email = {
     	Mail,
     	[Mail],
-    	getMailContent(Mail, UserName,EventTitle)
+    	getMailContent(Mail, CreatorName,UserName,EventTitle)
 	},
 	Options = [
 	   	{ssl,true},
@@ -17,10 +17,10 @@ send_invite(Mail, UserName,EventTitle) ->
 	],
 	gen_smtp_client:send_blocking(Email, Options).
 
-getMailContent(Mail, UserName,EventTitle)->
+getMailContent(Mail, CreatorName,UserName,EventTitle)->
 	From="From: TIKA <timeisknaepp@gmail.com>\r\n",
 	To="To: "++UserName++" <"++Mail++">\r\n",
-	Subject="Subject: "++UserName++" hat dich zu "++EventTitle++" eingeladen.\r\n\r\n",
+	Subject="Subject: "++CreatorName++" hat dich zu "++EventTitle++" eingeladen.\r\n\r\n",
 	Text="Lade dir die Time Is Knäpp App im App Store oder im Google Play Store um zuzusagen.",
 	Imprint="LG\r\nTika",
 	list_to_binary(From++To++Subject++Text++Imprint). 

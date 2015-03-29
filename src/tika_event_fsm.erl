@@ -11,6 +11,7 @@
 				over/1,
 				update/2,
 				update_dates/2,
+				update_contacts/2,
 				stop/2]).
 %% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -52,6 +53,9 @@ update(OwnPid,{Title,Description}) ->
 
 update_dates(OwnPid,{Dates}) ->
 	gen_fsm:sync_send_event(OwnPid,{update_dates,Dates}).
+
+update_contacts(OwnPid,{Contacts}) ->
+	gen_fsm:sync_send_event(OwnPid,{update_contacts,Contacts}).
 
 
 fix(OwnPid,{Day}) ->
@@ -134,6 +138,20 @@ open({update_dates,Dates},_From,Event=#event{}) ->
 	{reply,ok,open,ModEvent};
 
 
+open({update_contacts,Contacts},_From,Event=#event{}) ->
+	NewContacts = [NewContact || NewContact <- Contacts, false==member_of_event(Event#event.contacts,NewContact)],
+    invite_user(Event,NewContacts),
+
+    KeepContacts = [KeepContact || KeepContact <- Contacts, member_of_event(Event#event.contacts,KeepContact)],
+   
+    RemoveContacts = [RemoveContact || RemoveContact <- Event#event.contacts, false==member_of_event(KeepContacts,RemoveContact)],
+    ModEvent=tika_event:update(Event#event{
+    			contacts=lists:merge(KeepContacts,NewContacts),
+    			dates=remove_members_from_dates(RemoveContacts,Event#event.dates)
+    		}),
+	update_user_events(ModEvent#event.contacts),
+	{reply,ok,open,ModEvent};
+
 open(Event, _From, Data) ->
 	unexpected(Event, open),
     {next_state, open, Data}.
@@ -208,7 +226,7 @@ reject_event(User=#user{},Event=#event{},State) ->
 		true -> {next_state,State,ModEvent}
 	end.
 
-date_of_event([],Ts)->
+date_of_event([],_Ts)->
 	false;
 date_of_event([Date|T],Ts)->
 	DateDay=tika_database:msToDate(Date#day.timestamp),
@@ -218,7 +236,7 @@ date_of_event([Date|T],Ts)->
 		false -> date_of_event(T,Ts)
 	end.
 
-find_date([],Ts) ->
+find_date([],_Ts) ->
 	not_found;
 find_date([Date|T],Ts) ->
 	DateDay=tika_database:msToDate(Date#day.timestamp),
@@ -227,6 +245,23 @@ find_date([Date|T],Ts) ->
 		true -> Date;
 		false -> find_date(T,Ts)
 	end.
+
+member_of_event([],_Member)->
+	false;
+member_of_event([User|T],Member) ->
+case Member#user.mail==User#user.mail of
+		true -> true;
+		false -> member_of_event(T,Member)
+	end.
+
+remove_contact(Guests,Contact)->
+	[Guest || Guest<-Guests , Guest#user.mail=/=Contact#user.mail].
+
+remove_members_from_dates([],Dates) ->
+	Dates;
+remove_members_from_dates([Contact|T],Dates) ->
+	remove_members_from_dates(T,[Day#day{guests=remove_contact(Day#day.guests,Contact)} 
+								|| Day <- Dates]).
 
 merge_event_dates(Dates,Keep,New) ->
 	lists:merge([find_date(Dates,Day#day.timestamp)||Day<-Keep],New).

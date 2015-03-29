@@ -81,8 +81,8 @@ created({update,DisplayName,Mail},_From,User=#user{}) ->
                     end
     end;
 
-created({invite,#event{title=EventTitle}},_From, User=#user{mail=Mail,displayName=UserName}) ->
-    tika_mail:send_invite(Mail,UserName,EventTitle),
+created({invite,#event{title=EventTitle, creator=Creator}},_From, User=#user{mail=Mail,displayName=UserName}) ->
+    tika_mail:send_invite(Mail,Creator#user.displayName,UserName,EventTitle),
     InvitedUser=tika_user:update(User#user{invited=tika_database:unixTS()}),
     {reply,ok,invited,InvitedUser};    
 
