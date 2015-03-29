@@ -51,7 +51,7 @@ update(OwnPid,{Title,Description}) ->
 	gen_fsm:send_event(OwnPid,{update,Title,Description}).
 
 update_dates(OwnPid,{Dates}) ->
-	gen_fsm:send_event(OwnPid,{update_dates,Dates}).
+	gen_fsm:sync_send_event(OwnPid,{update_dates,Dates}).
 
 
 fix(OwnPid,{Day}) ->
@@ -107,12 +107,6 @@ open({update,Title,Description},Event=#event{}) ->
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
-open({update_dates,Dates},Event=#event{}) ->
-	NewDates = [NewDate || NewDate <- Dates, false==lists:member(NewDate,Event#event.dates)],
-    KeepDates = [KeepDates || KeepDates <- Dates, lists:member(KeepDates,Event#event.dates)],
-	ModEvent=tika_event:update(Event#event{dates=lists:merge(NewDates,KeepDates)}),
-	update_user_events(ModEvent#event.contacts),
-	{next_state,open,ModEvent};
 
 open({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event,open);
@@ -129,9 +123,16 @@ open(Event, Data) ->
 	unexpected(Event, open),
     {next_state, open, Data}.
 
-
 open(invite,_From,Event=#event{contacts=Contacts})->
 	{reply,ok,open,invite_user(Event,Contacts)};
+
+open({update_dates,Dates},_From,Event=#event{}) ->
+	NewDates = [NewDate || NewDate <- Dates, false==date_of_event(Event#event.dates,NewDate#day.timestamp)],
+    KeepDates = [KeepDate || KeepDate <- Dates, date_of_event(Event#event.dates,KeepDate#day.timestamp)],
+	ModEvent=tika_event:update(Event#event{dates=merge_event_dates(Event#event.dates,KeepDates,NewDates)}),
+	update_user_events(ModEvent#event.contacts),
+	{reply,ok,open,ModEvent};
+
 
 open(Event, _From, Data) ->
 	unexpected(Event, open),
@@ -207,6 +208,30 @@ reject_event(User=#user{},Event=#event{},State) ->
 		true -> {next_state,State,ModEvent}
 	end.
 
+date_of_event([],Ts)->
+	false;
+date_of_event([Date|T],Ts)->
+	DateDay=tika_database:msToDate(Date#day.timestamp),
+	IsDay=tika_database:msToDate(Ts),
+	case IsDay==DateDay of
+		true -> true;
+		false -> date_of_event(T,Ts)
+	end.
+
+find_date([],Ts) ->
+	not_found;
+find_date([Date|T],Ts) ->
+	DateDay=tika_database:msToDate(Date#day.timestamp),
+	IsDay=tika_database:msToDate(Ts),
+	case IsDay==DateDay of
+		true -> Date;
+		false -> find_date(T,Ts)
+	end.
+
+merge_event_dates(Dates,Keep,New) ->
+	lists:merge([find_date(Dates,Day#day.timestamp)||Day<-Keep],New).
+
+
 %% Unexpected allows to log unexpected messages
 unexpected(Msg, State) ->
     io:format("~p received unknown event ~p while in state ~p~n",
@@ -220,3 +245,7 @@ notice(Event=#event{}, Str, Args) ->
     Event,
     %erlang:display(Str).
     Str.
+
+
+
+

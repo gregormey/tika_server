@@ -88,7 +88,7 @@ start() ->
 	stopped=tika_database:install(test),
 	tika:start_server(test).
  
-stop(Pid) ->
+stop(_Pid) ->
 	tika:stop_server(),
 	ok.
 
@@ -99,10 +99,12 @@ tika_database_test_() ->
 		[
 		fun () ->
 			[
-				json2event(),
-				event2json(),
-				invite(),
-				findBy()
+				%json2event(),
+				%event2json(),
+				%findBy(),
+				%invite(),
+				update_dates()%,
+				%update_contacts()
 			]
 		end
 		]
@@ -143,17 +145,49 @@ invite()->
 	PidUser2=tika_process:id2pid(user,User2#user.id),
 	?assert(registered==tika_user_fsm:statename(PidUser2)).
 
-
-
-
 findBy() ->
 	Event1=tika_event:create(event()),
-	Event2=tika_event:create(event()),
+	tika_event:create(event()),
 
 	[Contact,_]= Event1#event.contacts,
 
 	Events=tika_event:findBy(user,Contact),
-	?assert(3==length(Events)).
+	?assert(2==length(Events)).
+
+
+update_dates() -> 
+	Event=tika_event:create(event()),
+	Dates=[#day {timestamp = 1421581862589},#day {timestamp = 1426245702443}],
+	Pid=tika_process:id2pid(event,Event#event.id),
+	ok=tika_event_fsm:update_dates(Pid,{Dates}),
+	[UpdatedEvent]=tika_database:find(id,event,Event#event.id),
+	[_,#day {guests=Guests}]=UpdatedEvent#event.dates,
+	%%expect still one guest after update
+	?assert(1==length(Guests)).
+
+
+update_contacts() -> 
+	Event=tika_event:create(event()),
+	Contacts=[#user {
+					id = 13,
+					displayName = "Maike",
+					mail = "maike@meyenberg.de"
+				},
+				#user {
+					id = 13,
+					displayName = "Benjamin",
+					mail = "benjamin@meyenberg.de"
+				}],
+	Pid=tika_process:id2pid(event,Event#event.id),
+	ok=tika_event_fsm:update_contacts(Pid,{Contacts}),
+	UpdatedEvent=tika_database:find(id,event,Event#event.id),
+	?assert(Contacts==UpdatedEvent#event.contacts),
+	[#day {guests=Guests}]=UpdatedEvent#event.dates,
+
+	%%expect zero guest after update
+	?assert(0==length(Guests)).
+
+
 
 
 

@@ -83,7 +83,12 @@ day2json(Day)->
 	case Day of 
 		false -> false;
 		_-> {[
-			  {<<"day">>,list_to_binary(Day#day.day)},
+			  {<<"day">>,
+			  			 case Day#day.day of
+			  			 	undefined -> <<"">>;
+			  			 	_ -> list_to_binary(Day#day.day)
+			  			 end
+			  },
 			  {<<"timestamp">>,Day#day.timestamp},
 			  {<<"checked">>,Day#day.checked},
 			  {<<"guests">>,[tika_user:user2json(User) || User <- Day#day.guests]}

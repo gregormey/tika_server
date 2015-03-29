@@ -13,6 +13,8 @@
 -export([create/2]).
 -export([delete/2]).
 -export([unixTS/0]).
+-export([msToDate/1]).
+
 
 
 %% record to generate unique ids
@@ -90,6 +92,14 @@ delete(Table,Record) ->
 unixTS()->
 	{Mega, Secs, _} = os:timestamp(),
 	Mega*1000000 + Secs.
+
+-spec msToDate(non_neg_integer())-> tuple().
+msToDate(Milliseconds) ->
+   BaseDate      = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+   Seconds       = BaseDate + (Milliseconds div 1000),
+   { Date,_Time} = calendar:gregorian_seconds_to_datetime(Seconds),
+   Date.
+
 
 %%% Private Functions
 filterById(Id)->
