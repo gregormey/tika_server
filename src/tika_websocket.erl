@@ -92,7 +92,7 @@ connectUser(null)->
     format_client_response("updateUser",tika_user:user2json(User));
 connectUser(UserJson)->
     case tika_user:load(tika_user:json2user(UserJson)) of
-            not_found -> format_client_response("userNotFound",true);
+            not_found -> connectUser(null);
             User->tika_user:load(tika_user:json2user(UserJson)),
                     gproc:reg({p, l, {websocket,User#user.id}}),
                     true
