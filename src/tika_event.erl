@@ -99,7 +99,7 @@ day2json(Day)->
 
 %% gen_server
 init([]) ->
-	mnesia:wait_for_tables([unique_ids,event],20000),
+	%mnesia:wait_for_tables([unique_ids,event],20000),
     {ok, ?MODULE}.
 
 handle_call({json2event,Json}, _From, Tab) ->

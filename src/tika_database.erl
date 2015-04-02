@@ -4,8 +4,6 @@
 -include("records.hrl").
 
 %% interfaces to database
--export([install/0]).
--export([install/1]).
 -export([find/1]).
 -export([find/2]).
 -export([find/3]).
@@ -19,17 +17,6 @@
 
 %% record to generate unique ids
 -record( unique_ids, {type, id} ).
-
-%% interfaces
--spec install() -> 'stopped' | {'error',_}.
-install() ->
-	tika:set_dbPath(), 
-	create_tables().
-
-%% set up schema for test enviroment
--spec install(test) -> 'stopped' | {'error',_}.
-install(test)->
-	create_tables().
 
 
 %% next id for given table
@@ -112,12 +99,17 @@ filterById(Id)->
 %% Mnesia query function
 do(Q) ->
 	F = fun() -> qlc:e(Q) end,
-	{atomic, Val} = mnesia:transaction(F),
-	Val. 
+	case mnesia:transaction(F) of
+		{atomic, Val} -> Val;
+		{aborted,{no_exists,_}} -> 
+								create_tables(),
+								do(Q)
+	end. 
 
--spec create_tables() -> 'stopped' | {'error',_}.
+-spec create_tables() -> ok | {'error',_}.
 create_tables()->
 	%% delete schema in case another schema is running on this node
+	mnesia:stop(),
 	ok=mnesia:delete_schema([node()]),
 	ok=mnesia:create_schema([node()]),
 	ok=mnesia:start(), 
@@ -133,4 +125,5 @@ create_tables()->
 	%% system models
 	{atomic,ok}=mnesia:create_table(user,[{attributes,record_info(fields,user)},{disc_copies,[node()]}]),
 	{atomic,ok}=mnesia:create_table(event,[{attributes,record_info(fields,event)},{disc_copies,[node()]}]),
-	mnesia:stop(). 
+	ok.
+	%mnesia:stop(). 

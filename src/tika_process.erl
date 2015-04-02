@@ -50,7 +50,7 @@ stop()-> gen_server:call(?MODULE, stop).
 
 %% gen_server
 init([]) ->
-	mnesia:wait_for_tables([process_user,process_event],20000),
+	%mnesia:wait_for_tables([process_user,process_event],20000),
     {ok, ?MODULE}.
 
 handle_call({reg,user,User}, _From, Tab) ->

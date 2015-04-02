@@ -85,8 +85,7 @@ getEventJsonStr()->
       "}}".
 
 start() ->
-	stopped=tika_database:install(test),
-	tika:start_server(test).
+	tika:start_server().
  
 stop(_Pid) ->
 	tika:stop_server(),

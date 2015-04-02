@@ -1,28 +1,15 @@
 -module(tika).
 -author("Gregor Meyenberg <gregor@meyenberg.de>").
 
--export([start_server/1]).
 -export([start_server/0]).
 -export([stop_server/0]).
 -export([restart_server/0]).
--export([set_dbPath/0]).
 
-%starts tika and dependencie services with a path to database
--spec start_server(test) -> ok.
-start_server(test) ->
-	start_applications().
 
 %starts tika and dependencie services and database in priv dir
 -spec start_server() -> ok.
 start_server() ->
-	set_dbPath(),
 	start_applications().
-
-%sets mnesia dir
--spec set_dbPath() -> ok.
-set_dbPath()->
-	application:set_env(mnesia, dir, filename:join("./priv", "data")).
-
 
 start(App) ->
     start_ok(App, application:start(App, permanent)).

@@ -6,8 +6,7 @@ user()->
 	#user{id=1,displayName = "Maike Meyenberg",mail="maike@meyenberg.de"}.
 
 start() ->
-	stopped=tika_database:install(test),
-	tika:start_server(test).
+	tika:start_server().
  
 stop(Pid) ->
 	tika:stop_server(),

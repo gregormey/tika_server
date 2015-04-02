@@ -63,7 +63,7 @@ json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
 
 %% gen_server
 init([]) ->
-	mnesia:wait_for_tables([unique_ids,user],20000),
+	%mnesia:wait_for_tables([unique_ids,user],20000),
     {ok, ?MODULE}.
 
 %% call handler to create user with a new id 
