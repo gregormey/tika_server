@@ -95,7 +95,10 @@ connectUser(UserJson)->
             not_found -> connectUser(null);
             User->tika_user:load(tika_user:json2user(UserJson)),
                     gproc:reg({p, l, {websocket,User#user.id}}),
-                    true
+                    case tika_event:findBy(user,User) of
+                        not_found -> format_client_response("updateEvents",[]);
+                        Events -> format_client_response("updateEvents",[tika_event:event2json(X) || X <- Events ])
+                    end
     end.
 
 %% Event Callbacks

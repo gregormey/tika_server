@@ -60,6 +60,7 @@ findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 -spec update(event()) -> event().
 update(Event) -> gen_server:call(?MODULE,{update,Event}).
 
+
 %% Internal functions
 json2day_(Json)->
 	case Json of 
@@ -181,8 +182,4 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	
-
-
 
