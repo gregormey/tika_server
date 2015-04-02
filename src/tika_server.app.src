@@ -5,8 +5,28 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  mnesia,
+				  asn1,
+				  crypto,
+				  public_key,
+				  ssl,
+				  gproc,
+				  cowlib,
+				  ranch,
+				  cowboy
                  ]},
   {mod, { tika_server_app, []}},
-  {env, []}
+  {env, []},
+  {modules, [
+            	tika,
+            	tika_database,
+            	tika_event,
+            	tika_event_fsm,
+            	tika_mail,
+            	tika_process,
+            	tika_user,
+            	tika_user_fsm,
+            	tika_websocket
+            ]}
  ]}.
