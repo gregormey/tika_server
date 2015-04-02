@@ -23,15 +23,37 @@ start_server() ->
 set_dbPath()->
 	application:set_env(mnesia, dir, filename:join("./priv", "data")).
 
+
+start(App) ->
+    start_ok(App, application:start(App, permanent)).
+
+start_ok(_App, ok) -> ok;
+start_ok(_App, {error, {already_started, _App}}) -> ok;
+start_ok(App, {error, {not_started, Dep}}) -> 
+    ok = start(Dep),
+    start(App);
+start_ok(App, {error, Reason}) -> 
+    erlang:error({app_start_failed, App, Reason}).
+
+stop(App) ->
+    stop_ok(App, application:stop(App)).
+
+stop_ok(_App, ok) -> ok;
+stop_ok(_App, {error, {not_started, _App}}) -> ok;
+stop_ok(App, {error, Reason}) -> 
+    erlang:error({app_start_failed, App, Reason}).
+
 %starts all required OTP applications
 -spec start_applications() -> ok.
 start_applications() ->
-	application:start(tika_server),
+	start(tika_server),
 	ok.
 
 -spec stop_server() -> ok.
 stop_server() ->
-	application:stop(tika_server),
+	stop(ranch),
+	stop(cowboy),
+	stop(tika_server),
     ok.
 
 -spec restart_server() -> ok.
