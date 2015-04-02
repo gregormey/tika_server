@@ -12,7 +12,7 @@
 -export([delete/2]).
 -export([unixTS/0]).
 -export([msToDate/1]).
-
+-export([create_tables/0]).
 
 
 %% record to generate unique ids

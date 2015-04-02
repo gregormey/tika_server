@@ -85,6 +85,7 @@ getEventJsonStr()->
       "}}".
 
 start() ->
+	tika_database:create_tables()
 	tika:start_server().
  
 stop(_Pid) ->
@@ -98,10 +99,10 @@ tika_database_test_() ->
 		[
 		fun () ->
 			[
-				%json2event(),
-				%event2json(),
-				%findBy(),
-				%invite(),
+				json2event(),
+				event2json(),
+				findBy(),
+				invite(),
 				update_dates(),
 				update_contacts()
 			]

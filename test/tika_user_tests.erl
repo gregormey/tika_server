@@ -6,9 +6,10 @@ user()->
 	#user{id=1,displayName = "Maike Meyenberg",mail="maike@meyenberg.de"}.
 
 start() ->
+	tika_database:create_tables(),
 	tika:start_server().
  
-stop(Pid) ->
+stop(_Pid) ->
 	tika:stop_server(),
 	ok.
 
