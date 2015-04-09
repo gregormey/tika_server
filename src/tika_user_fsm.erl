@@ -103,8 +103,8 @@ invited({update,DisplayName,Mail},_From,User=#user{}) ->
                             }),
       {reply,ok,registered,NewUser};
 
-invited({invite,#event{title=EventTitle}}, _From, User=#user{mail=Mail,displayName=UserName}) ->
-    tika_mail:send_invite(Mail,UserName,EventTitle),
+invited({invite,#event{title=EventTitle, creator=Creator}}, _From, User=#user{mail=Mail,displayName=UserName}) ->
+    tika_mail:send_invite(Mail,Creator#user.displayName, UserName,EventTitle),
     {reply,ok,invited,User};  
 
 invited(Event, _From,Data) ->
