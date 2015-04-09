@@ -1,5 +1,5 @@
 {application,tika_server,
-             [{description,"Backend for Time is Knäpp App"},
+             [{description,"Backend for Time is Knapp App"},
               {vsn,"0.1"},
               {registered,[]},
               {applications,[kernel,stdlib,mnesia,asn1,crypto,public_key,ssl,
