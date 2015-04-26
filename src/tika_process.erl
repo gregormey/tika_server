@@ -74,11 +74,18 @@ handle_call({unreg,event,Event}, _From, Tab) ->
 
 handle_call({id2pid,user,Id}, _From, Tab) ->
 	Process=process(user,Id),
-	{reply, Process#process_user.pid, Tab};
-
+	{reply, case process(user,Id) of
+				not_found -> not_found;
+				Process -> Process#process_user.pid
+			end, 
+	Tab};
+			
 handle_call({id2pid,event,Id}, _From, Tab) ->
-	Process=process(event,Id),
-	{reply, Process#process_event.pid, Tab};
+	{reply, case process(event,Id) of
+				not_found -> not_found;
+				Process -> Process#process_event.pid
+			end, 
+	Tab};
 
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.
