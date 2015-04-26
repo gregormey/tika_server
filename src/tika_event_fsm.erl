@@ -218,12 +218,10 @@ update_user_events([User|T]) ->
 
 
 reject_event(User=#user{},Event=#event{},State) ->
-	ModEvent=tika_event:update(Event#event{contacts = lists:filter(
-				fun(Contact) ->
-					Contact#user.mail =/=  User#user.mail
-				end,
-				Event#event.contacts
-			)}),
+	ModEvent=tika_event:update(Event#event{
+			contacts = remove_contact(Event#event.contacts,User),
+			dates = remove_members_from_dates([User],Event#event.dates)
+	}),
 	case lists:flatlength(ModEvent#event.contacts)>0 of
 		false -> ok=tika_process:unreg(event,Event),
 				{stop, normal, Event};
