@@ -49,6 +49,8 @@ websocket_terminate(_Reason, _Req, _State) ->
 %% Remote Interface
 -spec sendEventsToRemote(user(),list()) -> true.
 sendEventsToRemote(User, Events) ->
+    erlang:display('Send events To'),
+    erlang:display(User),
     case Events of
         not_found ->true;
         _ -> Response=format_client_response("updateEvents",[tika_event:event2json(X) || X <- Events ]),

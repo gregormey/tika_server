@@ -213,7 +213,7 @@ invite_user(Event,[User|T])->
 
 update_user_events([]) -> ok;
 update_user_events([User|T]) -> 
-	tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
+	tika_websocket:sendEventsToRemote(tika_user:load(mail,User#user.mail),tika_event:findBy(user,User)),
 	update_user_events(T).
 
 
