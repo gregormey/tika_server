@@ -82,6 +82,8 @@ handle_events(Msg) ->
 %% User Callbacks
 updateUser(UserJson)->
    User=tika_user:json2user(UserJson),
+   erlang:display("Update"),
+   erlang:display(User#user.id),
    Pid=tika_process:id2pid(user,User#user.id),
    case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
         ok -> format_client_response("registerUser",{[{<<"msg">>,<<"ok">>}]});
