@@ -53,20 +53,21 @@ user(OwnPid) ->
 -spec init(User::user()) -> {ok, created, user()}.
 init(User=#user{}) ->
     %%set state
-     State= case User#user.registered of
-                    undefined -> case User#user.invited of
-                                    undefined -> created;
-                                    _ -> invited
-                                end;
+	{ok, 
+        case User#user.registered of
+            undefined -> case User#user.invited of
+                                undefined -> created;
+                                _ -> invited
+                        end;
                     _ -> registered
-            end,
-	{ok, State, User}.
+        end, 
+    User}.
 
 %%% STATE CALLBACKS
 
 created({update,DisplayName,Mail},_From,User=#user{}) ->
-    UpdateUser= fun() ->
-       NewUser=tika_user:update(User#user{
+    UpdateUser= fun(MyUser) ->
+       NewUser=tika_user:update(MyUser#user{
                                     displayName=DisplayName,
                                     mail=Mail,
                                     registered=tika_database:unixTS()
@@ -74,10 +75,16 @@ created({update,DisplayName,Mail},_From,User=#user{}) ->
         NewUser 
     end,
     case tika_user:load(mail,Mail) of 
-        not_found -> {reply,ok,registered,UpdateUser()};
+        not_found -> {reply,ok,registered,UpdateUser(User)};
         FoundUser -> case FoundUser#user.id==User#user.id of
-                        true -> {reply,ok,registered,UpdateUser()};
-                        false -> {reply,user_exists,created,User}
+                        %% TDO: clean it up and use functions
+                        true -> {reply,ok,registered,UpdateUser(User)};
+                        false -> case FoundUser of
+                                    #user{registered=Registered,invited=Invited} when Registered==undefined, Invited=/=undefined-> 
+                                                        tika_database:delete(user, User), 
+                                                        {reply,ok,registered,UpdateUser(FoundUser)};
+                                    _ -> {reply,user_exists,created,User}
+                                end
                     end
     end;
 
