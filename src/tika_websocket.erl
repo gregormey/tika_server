@@ -86,7 +86,7 @@ updateUser(UserJson)->
    erlang:display(User#user.id),
    Pid=tika_process:id2pid(user,User#user.id),
    case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
-        ok -> format_client_response("registerUser",{[{<<"msg">>,<<"ok">>}]});
+        ok -> updateEventsMessage(User,"registerUser");
         user_exists -> format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
    end.
 
@@ -99,10 +99,7 @@ connectUser(UserJson)->
             not_found -> connectUser(null);
             User->tika_user:load(tika_user:json2user(UserJson)),
                     gproc:reg({p, l, {websocket,User#user.id}}),
-                    case tika_event:findBy(user,User) of
-                        not_found -> format_client_response("updateEvents",[]);
-                        Events -> format_client_response("updateEvents",[tika_event:event2json(X) || X <- Events ])
-                    end
+                    updateEventsMessage(User,"updateEvents")
     end.
 
 %% Event Callbacks
@@ -156,6 +153,9 @@ format_client_response(Event,Data)->
         {<< "data" >> , Data}
     ]}).
 
-
-
+updateEventsMessage(User,Message)->
+    case tika_event:findBy(user,User) of
+        not_found -> format_client_response(Message,[]);
+        Events -> format_client_response(Message,[tika_event:event2json(X) || X <- Events ])
+    end.
 
