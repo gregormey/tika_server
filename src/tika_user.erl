@@ -10,7 +10,7 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([create/0,create/1,load/1,load/2,user2json/1,json2user/1,update/1]).
+-export([create/0,create/1,list/1,load/1,load/2,user2json/1,json2user/1,update/1]).
 
 %% default interfaces
 -export([start/0]).
@@ -40,8 +40,12 @@ create() -> gen_server:call(?MODULE,create).
 -spec create(user()) -> user().
 create(User) -> gen_server:call(?MODULE,{create,User}).
 
+-spec list(with_mail) -> list()| not_found.
+list(with_mail) -> gen_server:call(?MODULE,{list,with_mail}).
+
 -spec load(user()) -> user()| not_found.
 load(User) -> gen_server:call(?MODULE,{load,User}).
+
 
 -spec load(mail,string()) -> user()| not_found.
 load(mail,Mail) -> gen_server:call(?MODULE,{load,mail,Mail}).
@@ -74,6 +78,12 @@ handle_call(create, _From, Tab) ->
 handle_call({create,User}, _From, Tab) ->
 	[NewUser]=tika_database:create(user,User#user{created=tika_database:unixTS()}),
 	{reply, NewUser, Tab};
+
+handle_call({list,with_mail}, _From, Tab) ->
+	Fun=fun(R) ->
+			R#user.mail =/= []
+	end,
+	{reply, tika_database:find(user,Fun) , Tab};
 
 handle_call({load,User}, _From, Tab) ->
 	{reply, 

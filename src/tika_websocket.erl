@@ -9,6 +9,7 @@
 
 %% custom
 -export([sendEventsToRemote/2]).
+-export([switchUserRemote/2]).
 
 -include("records.hrl").
 
@@ -60,6 +61,10 @@ sendEventsToRemote(User, Events) ->
             {_PID, _Data}=gproc:send({p, l, {websocket,User#user.id}}, {self(), << Response/binary >>}),
             true
     end. 
+-spec switchUserRemote(user(),user()) -> true.
+switchUserRemote(User,NewUser) ->
+    Response=format_client_response("switchUser",tika_user:user2json(NewUser)),
+    {_PID, _Data}=gproc:send({p, l, {websocket,User#user.id}}, {self(), << Response/binary >>}).
 
 %% events
 %% Proxy for possible events
@@ -91,13 +96,17 @@ updateUser(UserJson)->
    end.
 
 connectUser(null)-> 
+    erlang:display("connect with null"), 
     User=tika_user:create(),
     gproc:reg({p, l, {websocket,User#user.id}}),
     format_client_response("updateUser",tika_user:user2json(User));
 connectUser(UserJson)->
+    erlang:display("connect with User"), 
     case tika_user:load(tika_user:json2user(UserJson)) of
             not_found -> connectUser(null);
             User->tika_user:load(tika_user:json2user(UserJson)),
+                    erlang:display("New Websocket for"),
+                    erlang:display(User#user.id),
                     gproc:reg({p, l, {websocket,User#user.id}}),
                     updateEventsMessage(User,"updateEvents")
     end.

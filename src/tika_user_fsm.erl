@@ -81,7 +81,8 @@ created({update,DisplayName,Mail},_From,User=#user{}) ->
                         true -> {reply,ok,registered,UpdateUser(User)};
                         false -> case FoundUser of
                                     #user{registered=Registered,invited=Invited} when Registered==undefined, Invited=/=undefined-> 
-                                                        tika_database:delete(user, User), 
+                                                        tika_database:delete(user, User),
+                                                        tika_websocket:switchUserRemote(User,FoundUser), 
                                                         {reply,ok,registered,UpdateUser(FoundUser)};
                                     _ -> {reply,user_exists,created,User}
                                 end

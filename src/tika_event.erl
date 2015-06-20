@@ -15,7 +15,9 @@
 			event2json/1,
 			create/1, 
 			update/1, 
-			findBy/2
+			findBy/2,
+			list/0,
+			remove/1
 			]).
 
 %% default interfaces
@@ -56,9 +58,14 @@ create(Event) -> gen_server:call(?MODULE,{create,Event}).
 -spec findBy(atom(),user()) -> list().
 findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 
+-spec list() -> list().
+list() -> gen_server:call(?MODULE,{list}).
 
 -spec update(event()) -> event().
 update(Event) -> gen_server:call(?MODULE,{update,Event}).
+
+-spec remove(all) -> list().
+remove(all) -> gen_server:call(?MODULE,{remove,all}).
 
 
 %% Internal functions
@@ -162,9 +169,17 @@ handle_call({findBy,user,User}, _From, Tab) ->
 	end,
 	{reply, tika_database:find(event,Filter), Tab};
 
+handle_call({list}, _From, Tab) -> 
+	{reply, tika_database:find(event), Tab};	
+
 handle_call({update,Event}, _From, Tab) -> 
 	[NewEvent]=tika_database:write(event,Event),
 	{reply, NewEvent, Tab};
+
+handle_call({remove,all}, _From, Tab) -> 
+	{reply, 
+		[tika_database:delete(event, Event) || Event <- tika_database:find(event)], 
+	Tab};
 
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.
