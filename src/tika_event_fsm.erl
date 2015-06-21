@@ -157,6 +157,11 @@ open(Event, _From, Data) ->
     {next_state, open, Data}.
 
 
+fixed({fix,Day=#day{}},Event=#event{}) ->
+	ModEvent=tika_event:update(Event#event{appointment=Day}),
+	update_user_events(ModEvent#event.contacts),
+	{next_state,fixed,ModEvent};
+
 fixed({reject,User=#user{}},Event=#event{}) ->
 	reject_event(User,Event,fixed);
 
