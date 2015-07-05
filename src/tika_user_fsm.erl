@@ -4,6 +4,7 @@
 %% public API
 -export([start/1, start_link/1, 
             update/2,
+            update_pushToken/2,
             statename/1,
             invite/2,
             user/1,
@@ -36,6 +37,9 @@ start_link(User=#user{}) ->
 %%% EVENTS
 update(OwnPid,{DisplayName,Mail}) -> 
     gen_fsm:sync_send_event(OwnPid,{update,DisplayName,Mail}).
+
+update_pushToken(OwnPid,{Token}) -> 
+    gen_fsm:sync_send_event(OwnPid,{update_pushToken,Token}).
 
 invite(OwnPid,Event)->
     gen_fsm:sync_send_event(OwnPid,{invite,Event}).    
@@ -89,6 +93,11 @@ created({update,DisplayName,Mail},_From,User=#user{}) ->
                     end
     end;
 
+created({update_pushToken,Token},_From,User=#user{}) ->
+    {reply,ok,created,
+        tika_user:update(User#user{pushToken=Token})
+    };
+
 created({invite,#event{title=EventTitle, creator=Creator}},_From, User=#user{mail=Mail,displayName=UserName}) ->
     tika_mail:send_invite(Mail,Creator#user.displayName,UserName,EventTitle),
     InvitedUser=tika_user:update(User#user{invited=tika_database:unixTS()}),
@@ -139,6 +148,11 @@ registered({update,DisplayName,Mail},_From,User=#user{}) ->
                         false -> {reply,user_exists,registered,User}
                     end
     end;
+
+registered({update_pushToken,Token},_From,User=#user{}) ->
+    {reply,ok,created,
+        tika_user:update(User#user{pushToken=Token})
+    };
 
 registered({invite,#event{}},_From, User=#user{}) ->
     tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),

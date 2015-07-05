@@ -74,6 +74,7 @@ handle_events(Msg) ->
     case jiffy:decode(Msg) of
         {[{<< "Connect" >> , User}]} -> connectUser(User);
         {[{<< "UpdateUser" >> , User}]} -> updateUser(User);
+        {[{<< "UpdateToken" >> , User}]} -> updateToken(User);
         {[{<< "CreateEvent" >> , Event}]} -> createEvent(Event);
         {[{<< "UpdateEvent" >> , Event}]} -> updateEvent(Event);
         {[{<< "User" >> , User},{<< "RefuseEvent" >> , Event}]} -> refuseEvent(User,Event);
@@ -93,6 +94,16 @@ updateUser(UserJson)->
    case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
         ok -> updateEventsMessage(User,"registerUser");
         user_exists -> format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
+   end.
+
+updateToken(UserJson)->
+   User=tika_user:json2user(UserJson),
+   erlang:display("Update Token"),
+   erlang:display(User#user.id),
+   Pid=tika_process:id2pid(user,User#user.id),
+   case tika_user_fsm:update_pushToken(Pid,{User#user.pushToken}) of 
+        ok -> true;
+        _ -> false 
    end.
 
 connectUser(null)-> 

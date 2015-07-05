@@ -14,7 +14,8 @@
 				  gproc,
 				  cowlib,
 				  ranch,
-				  cowboy
+				  cowboy,
+          inets
                  ]},
   {mod, { tika_server_app, []}},
   {env, []},

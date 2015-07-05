@@ -13,6 +13,9 @@
 -export([unixTS/0]).
 -export([msToDate/1]).
 -export([create_tables/0]).
+-export([update_schema/2]).
+
+
 
 
 %% record to generate unique ids
@@ -127,3 +130,14 @@ create_tables()->
 	{atomic,ok}=mnesia:create_table(event,[{attributes,record_info(fields,event)},{disc_copies,[node()]}]),
 	ok.
 	%mnesia:stop(). 
+
+
+
+-spec update_schema(atom(),fun()) -> any().
+update_schema(Table,Fun) ->
+	case Table of
+		user -> mnesia:transform_table(user,Fun,record_info(fields,user));
+		event -> mnesia:transform_table(event,Fun,record_info(fields,event));
+		_ -> update_not_possible
+	end.
+

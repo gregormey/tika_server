@@ -112,14 +112,16 @@ handle_call({json2user,Json}, _From, Tab) ->
 	{[
 	  {_,Id},
 	  {_,DisplayName},
-	  {_,Mail}
+	  {_,Mail},
+	  {_,PushToken}
 	 ]}=Json,
 
 	{reply, 
 		#user{
 			id=Id,
 			displayName=binary_to_list(DisplayName),
-			mail=binary_to_list(Mail)  
+			mail=binary_to_list(Mail),
+			pushToken=binary_to_list(PushToken) 
 		}
 	, Tab};
 handle_call({user2json,User}, _From, Tab) ->
@@ -127,7 +129,8 @@ handle_call({user2json,User}, _From, Tab) ->
 		{[
 	  		{<<"id">>,User#user.id},
 	  		{<<"displayName">>,list_to_binary(User#user.displayName)},
-	  		{<<"mail">>,list_to_binary(User#user.mail)}
+	  		{<<"mail">>,list_to_binary(User#user.mail)},
+	  		{<<"pushToken">>,list_to_binary(User#user.pushToken)}
 	 	]}
 	, Tab};
 
