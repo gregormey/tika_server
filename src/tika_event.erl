@@ -56,7 +56,9 @@ event2json(Event) -> gen_server:call(?MODULE,{event2json,Event}).
 create(Event) -> gen_server:call(?MODULE,{create,Event}).
 
 -spec findBy(atom(),user()) -> list().
-findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User}).
+findBy(user,User) -> gen_server:call(?MODULE,{findBy,user,User});
+
+findBy(user_answered,User) -> gen_server:call(?MODULE,{findBy,user,User}).
 
 -spec list() -> list().
 list() -> gen_server:call(?MODULE,{list}).
@@ -166,6 +168,24 @@ handle_call({findBy,user,User}, _From, Tab) ->
 		IsUserContact=[X || X <- R#event.contacts, 
 							X#user.mail==User#user.mail],
 		length(IsUserContact) == 1
+	end,
+	{reply, tika_database:find(event,Filter), Tab};
+
+handle_call({findBy,user_answered,User}, _From, Tab) -> 
+	Filter= fun(R) ->
+		IsUserContact=[X || X <- R#event.contacts, 
+							X#user.mail==User#user.mail],
+		case length(IsUserContact) of
+			1 ->
+				length([ Date || Date <- R#event.dates,
+								length(
+									[ Contact || Contact <-Date#day.guests, 
+										Contact#user.mail==User#user.mail
+									]
+								)>0 
+				]) > 0; 
+			_ -> false
+		end
 	end,
 	{reply, tika_database:find(event,Filter), Tab};
 

@@ -10,7 +10,15 @@
 -export([code_change/3]).
 
 %% custom interfaces
--export([create/0,create/1,list/1,load/1,load/2,user2json/1,json2user/1,update/1]).
+-export([create/0,
+		create/1,
+		list/1,
+		load/1,
+		load/2,
+		user2json/1,
+		json2user/1,
+		update/1,
+		batch_number/1]).
 
 %% default interfaces
 -export([start/0]).
@@ -59,7 +67,8 @@ user2json(User) -> gen_server:call(?MODULE,{user2json,User}).
 -spec json2user(tuple()) -> user().
 json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
 
-
+-spec batch_number(user()) -> non_neg_integer().
+batch_number(User) -> gen_server:call(?MODULE,{batch_number,User}).
 
 %% Internal functions
 
@@ -134,8 +143,10 @@ handle_call({user2json,User}, _From, Tab) ->
 	 	]}
 	, Tab};
 
-
-
+handle_call({batch_number,User}, _From, Tab) ->
+	{reply, 
+		length(tika_event:findBy(user_answered,User))
+	, Tab};
 
 handle_call(stop, _From, Tab) ->
 	{stop, normal, stopped, Tab}.

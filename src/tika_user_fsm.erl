@@ -154,7 +154,8 @@ registered({update_pushToken,Token},_From,User=#user{}) ->
         tika_user:update(User#user{pushToken=Token})
     };
 
-registered({invite,#event{}},_From, User=#user{}) ->
+registered({invite,#event{title=EventTitle}},_From, User=#user{}) ->
+    tika_push:send_invite(User, EventTitle), 
     tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
     {reply,ok,registered,User}; 
 
