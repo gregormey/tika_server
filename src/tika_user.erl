@@ -15,6 +15,7 @@
 		list/1,
 		load/1,
 		load/2,
+		remove/1,
 		user2json/1,
 		json2user/1,
 		update/1,
@@ -57,6 +58,9 @@ load(User) -> gen_server:call(?MODULE,{load,User}).
 
 -spec load(mail,string()) -> user()| not_found.
 load(mail,Mail) -> gen_server:call(?MODULE,{load,mail,Mail}).
+
+-spec remove(non_neg_integer()) -> ok | not_found.
+remove(Id) -> gen_server:call(?MODULE,{remove,Id}).
 
 -spec update(user()) -> user().
 update(User) -> gen_server:call(?MODULE,{update,User}).
@@ -102,6 +106,11 @@ handle_call({load,User}, _From, Tab) ->
 		end
 	, Tab};
 
+handle_call({remove,Id}, _From, Tab) ->
+	{reply, 
+		tika_database:delete(user,#user{id=Id})
+	, Tab};
+
 handle_call({update,User}, _From, Tab) -> 
 	[NewUser]=tika_database:write(user,User),
 	{reply, NewUser, Tab};
@@ -139,7 +148,11 @@ handle_call({user2json,User}, _From, Tab) ->
 	  		{<<"id">>,User#user.id},
 	  		{<<"displayName">>,list_to_binary(User#user.displayName)},
 	  		{<<"mail">>,list_to_binary(User#user.mail)},
-	  		{<<"pushToken">>,list_to_binary(User#user.pushToken)}
+	  		{<<"pushToken">>,case User#user.pushToken of
+			  			 			undefined -> <<"">>;
+			  			 				_ -> list_to_binary(User#user.pushToken)
+			  			 	end
+			 }
 	 	]}
 	, Tab};
 
