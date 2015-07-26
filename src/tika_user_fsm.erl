@@ -150,7 +150,7 @@ registered({update,DisplayName,Mail},_From,User=#user{}) ->
     end;
 
 registered({update_pushToken,Token},_From,User=#user{}) ->
-    {reply,ok,created,
+    {reply,ok,registered,
         tika_user:update(User#user{pushToken=Token})
     };
 
