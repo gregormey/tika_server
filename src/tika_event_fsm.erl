@@ -206,9 +206,7 @@ terminate(_Reason, _StateName, Event=#event{}) ->
 
 %%% PRIVATE FUNCTIONS
 
-invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail =/= Creator#user.mail ->
-	erlang:display("invite"),
-	erlang:display(User#user.displayName),  
+invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail =/= Creator#user.mail -> 
 	InviteUser = case tika_user:load(mail,User#user.mail) of 
 					not_found -> tika_user:create(User);
 					FoundUser -> FoundUser
@@ -216,9 +214,7 @@ invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail =/= Crea
 	Pid=tika_process:id2pid(user,InviteUser#user.id),
 	ok=tika_user_fsm:invite(Pid,Event),
 	invite_user(Event,T);
-invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail == Creator#user.mail-> 
-	erlang:display("invite creator"),
-	erlang:display(User#user.displayName),  
+invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail == Creator#user.mail->  
 	tika_websocket:sendEventsToRemote(User,tika_event:findBy(user,User)),
 	invite_user(Event,T);
 invite_user(Event,[])-> 

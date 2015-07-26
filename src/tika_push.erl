@@ -3,7 +3,7 @@
 
 -include("records.hrl").
 
-send_invite(User=#user{pushToken=PushToken},EventTitle) when PushToken =/= undefined  ->
+send_invite(User=#user{pushToken=PushToken},Event=#event{title=EventTitle,creator=Creator}) when PushToken =/= undefined  ->
 		Method = post,
 		Type = "application/json",
 		URL = get_push_uri(),
@@ -13,7 +13,7 @@ send_invite(User=#user{pushToken=PushToken},EventTitle) when PushToken =/= undef
 		erlang:display(PushToken), 
 		Body = jiffy:encode(get_body(PushToken, 
 										tika_user:batch_number(User), 
-										get_invite_text(User#user.displayName,EventTitle)
+										get_invite_text(Creator#user.displayName,EventTitle)
 									)
 							),
 		HTTPOptions = [],
