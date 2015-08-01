@@ -234,7 +234,9 @@ reject_event(User=#user{},Event=#event{},State) ->
 	case lists:flatlength(ModEvent#event.contacts)>0 of
 		false -> ok=tika_process:unreg(event,Event),
 				{stop, normal, Event};
-		true -> {next_state,State,ModEvent}
+		true -> 
+			tika_push:send_reject(ModEvent#event.contacts,User,Event),
+			{next_state,State,ModEvent}
 	end.
 
 date_of_event([],_Ts)->
