@@ -100,9 +100,9 @@ updateToken(UserJson)->
    User=tika_user:json2user(UserJson),
    erlang:display("Update Token"),
    erlang:display(User#user.id),
-   case User#user.id of
-        "" -> false;
-        _-> Pid=tika_process:id2pid(user,User#user.id),
+   case is_number(User#user.id) of
+        false -> true;
+        true-> Pid=tika_process:id2pid(user,User#user.id),
                case Pid of
                    not_found -> false;
                    _ -> case tika_user_fsm:update_pushToken(Pid,{User#user.pushToken}) of 
