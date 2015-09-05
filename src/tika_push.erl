@@ -3,6 +3,7 @@
 -export([send_confirm/4]).
 -export([send_deconfirm/4]).
 -export([send_reject/3]).
+-export([send_fix/2]).
 
 -include("records.hrl").
 
@@ -10,6 +11,18 @@ send_invite(User=#user{pushToken=PushToken},
 			#event{title=EventTitle,creator=Creator}) when PushToken =/= undefined  ->
 	send_notfication(User,get_invite_text(Creator#user.displayName,EventTitle));
 send_invite(_,_) -> false.
+
+send_fix([User|T],
+		Event)->
+		send_fix(tika_user:load(mail,User#user.mail),Event),
+		send_fix(T,Event);
+send_fix(User=#user{pushToken=PushToken,mail=UserMail},
+		#event{title=EventTitle,appointment=#day{timestamp=Day},creator=#user{mail=CreatorMail}}) when 
+		PushToken =/= undefined,
+		UserMail =/= CreatorMail  ->
+	send_notfication(User,get_fix_text(EventTitle,Day));
+send_fix([],_) -> ok;
+send_fix(_,_) -> false.
 
 send_confirm([User|T],
 			Event,
@@ -127,13 +140,16 @@ get_invite_text(CreatorName, EventTitle)->
 	CreatorName++" hat dich zu "++EventTitle++" eingeladen.".
 
 get_confirm_text(DisplayName,Day, EventTitle) ->
-	DisplayName ++" hat am "++Day++" zu "++EventTitle++" Zeit.".
+	DisplayName ++" hat am "++tika_database:msToDate(Day)++" zu "++EventTitle++" Zeit.".
 
 get_deconfirm_text(DisplayName,Day, EventTitle) ->
-	DisplayName ++" hat am "++Day++" zu "++EventTitle++" doch keine Zeit.".
+	DisplayName ++" hat am "++tika_database:msToDate(Day)++" zu "++EventTitle++" doch keine Zeit.".
 
 get_reject_text(DisplayName, EventTitle) ->
 	DisplayName ++ " zu "++EventTitle++" abgesagt.".
+
+get_fix_text(EventTitle, Day) ->
+	EventTitle ++ " findet am "++tika_database:msToDate(Day)++" statt.".	
 
 
 
