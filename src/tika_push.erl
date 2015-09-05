@@ -7,30 +7,44 @@
 -include("records.hrl").
 
 send_invite(User=#user{pushToken=PushToken},
-			Event=#event{title=EventTitle,creator=Creator}) when PushToken =/= undefined  ->
+			#event{title=EventTitle,creator=Creator}) when PushToken =/= undefined  ->
 	send_notfication(User,get_invite_text(Creator#user.displayName,EventTitle));
 send_invite(_,_) -> false.
 
+send_confirm([User|T],
+			Event,	
+			Day
+			)->
+	send_confirm(tika_user:load(mail,User#user.mail),Event,Day),
+	send_confirm(T,Event,Day);
 send_confirm(User=#user{displayName=DisplayName,pushToken=PushToken},
-			Event=#event{title=EventTitle},
-			Day=#day{day=Day}) when PushToken =/= undefined  ->
+			#event{title=EventTitle},
+			#day{day=Day}) when PushToken =/= undefined  ->
 	send_notfication(User,get_confirm_text(DisplayName,Day, EventTitle));
+send_confirm([],_,_) -> ok;
 send_confirm(_,_,_) -> false.
 
+	
+send_deconfirm([User|T],
+			Event,
+			Day)->
+	send_deconfirm(tika_user:load(mail,User#user.mail),Event,Day),
+	send_deconfirm(T,Event,Day);
 send_deconfirm(User=#user{displayName=DisplayName,pushToken=PushToken},
-			Event=#event{title=EventTitle},
-			Day=#day{day=Day}) when PushToken =/= undefined  ->
+			#event{title=EventTitle},
+			#day{day=Day}) when PushToken =/= undefined  ->
 	send_notfication(User,get_deconfirm_text(DisplayName,Day, EventTitle));
+send_deconfirm([],_,_) -> ok;
 send_deconfirm(_,_,_) -> false.
 
 send_reject([User|T],
-			Rejector=#user{displayName=DisplayName},
-			Event=#event{title=EventTitle})->
+			Rejector=#user{},
+			Event=#event{})->
 	send_reject(tika_user:load(mail,User#user.mail),Rejector,Event),
 	send_reject(T,Rejector,Event);
 send_reject(User=#user{pushToken=PushToken},
-			Rejector=#user{displayName=DisplayName},
-			Event=#event{title=EventTitle}) when PushToken =/= undefined  ->
+			#user{displayName=DisplayName},
+			#event{title=EventTitle}) when PushToken =/= undefined  ->
 	send_notfication(User,get_reject_text(DisplayName, EventTitle));
 send_reject([],_,_) -> ok;
 send_reject(_,_,_) -> false.
