@@ -1,7 +1,7 @@
 -module(tika_push).
 -export([send_invite/2]).
--export([send_confirm/3]).
--export([send_deconfirm/3]).
+-export([send_confirm/4]).
+-export([send_deconfirm/4]).
 -export([send_reject/3]).
 
 -include("records.hrl").
@@ -12,30 +12,38 @@ send_invite(User=#user{pushToken=PushToken},
 send_invite(_,_) -> false.
 
 send_confirm([User|T],
-			Event,	
+			Event,
+			Sender,	
 			Day
 			)->
-	send_confirm(tika_user:load(mail,User#user.mail),Event,Day),
-	send_confirm(T,Event,Day);
-send_confirm(User=#user{displayName=DisplayName,pushToken=PushToken},
+	send_confirm(tika_user:load(mail,User#user.mail),Event,Sender,Day),
+	send_confirm(T,Event,Sender,Day);
+send_confirm(User=#user{pushToken=PushToken, mail=UserMail},
 			#event{title=EventTitle},
-			#day{day=Day}) when PushToken =/= undefined  ->
+			#user{displayName=DisplayName,mail=SenderMail},
+			#day{day=Day}) when 
+			PushToken =/= undefined,  
+			UserMail =/= SenderMail ->
 	send_notfication(User,get_confirm_text(DisplayName,Day, EventTitle));
-send_confirm([],_,_) -> ok;
-send_confirm(_,_,_) -> false.
+send_confirm([],_,_,_) -> ok;
+send_confirm(_,_,_,_) -> false.
 
 	
 send_deconfirm([User|T],
 			Event,
+			Sender,
 			Day)->
-	send_deconfirm(tika_user:load(mail,User#user.mail),Event,Day),
-	send_deconfirm(T,Event,Day);
-send_deconfirm(User=#user{displayName=DisplayName,pushToken=PushToken},
+	send_deconfirm(tika_user:load(mail,User#user.mail),Event,Sender,Day),
+	send_deconfirm(T,Event,Sender,Day);
+send_deconfirm(User=#user{pushToken=PushToken, mail=UserMail},
 			#event{title=EventTitle},
-			#day{day=Day}) when PushToken =/= undefined  ->
+			#user{displayName=DisplayName, mail=SenderMail},
+			#day{day=Day}) when 
+			PushToken =/= undefined,
+			UserMail =/= SenderMail   ->
 	send_notfication(User,get_deconfirm_text(DisplayName,Day, EventTitle));
-send_deconfirm([],_,_) -> ok;
-send_deconfirm(_,_,_) -> false.
+send_deconfirm([],_,_,_) -> ok;
+send_deconfirm(_,_,_,_) -> false.
 
 send_reject([User|T],
 			Rejector=#user{},

@@ -88,7 +88,7 @@ open({confirm_date,User=#user{},Day_ts},Event=#event{}) ->
 				end
 			end),
 	ModEvent=tika_event:update(Event#event{dates = lists:map(Fun,Dates)}),
-	tika_push:send_confirm(ModEvent#event.contacts, ModEvent, find_date(ModEvent#event.dates,Day_ts)), 
+	tika_push:send_confirm(ModEvent#event.contacts, ModEvent, User,find_date(ModEvent#event.dates,Day_ts)), 
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
@@ -104,7 +104,7 @@ open({deconfirm_date,User=#user{},Day_ts},Event=#event{}) ->
 				end
 			end),
 	ModEvent=tika_event:update(Event#event{dates = lists:map(Fun,Dates)}),
-	tika_push:send_deconfirm(ModEvent#event.contacts, ModEvent, find_date(ModEvent#event.dates,Day_ts)), 
+	tika_push:send_deconfirm(ModEvent#event.contacts, ModEvent, User ,find_date(ModEvent#event.dates,Day_ts)), 
 	update_user_events(ModEvent#event.contacts),
 	{next_state,open,ModEvent};
 
