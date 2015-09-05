@@ -17,27 +17,27 @@ send_fix([User|T],
 		send_fix(tika_user:load(mail,User#user.mail),Event),
 		send_fix(T,Event);
 send_fix(User=#user{pushToken=PushToken,mail=UserMail},
-		#event{title=EventTitle,appointment=#day{timestamp=Day},creator=#user{mail=CreatorMail}}) when 
+		#event{title=EventTitle,appointment=#day{timestamp=DayTs},creator=#user{mail=CreatorMail}}) when 
 		PushToken =/= undefined,
 		UserMail =/= CreatorMail  ->
-	send_notfication(User,get_fix_text(EventTitle,Day));
+	send_notfication(User,get_fix_text(EventTitle,DayTs));
 send_fix([],_) -> ok;
 send_fix(_,_) -> false.
 
 send_confirm([User|T],
 			Event,
 			Sender,	
-			Day
+			DayTs
 			)->
-	send_confirm(tika_user:load(mail,User#user.mail),Event,Sender,Day),
-	send_confirm(T,Event,Sender,Day);
+	send_confirm(tika_user:load(mail,User#user.mail),Event,Sender,DayTs),
+	send_confirm(T,Event,Sender,DayTs);
 send_confirm(User=#user{pushToken=PushToken, mail=UserMail},
 			#event{title=EventTitle},
 			#user{displayName=DisplayName,mail=SenderMail},
-			#day{day=Day}) when 
+			DayTs) when 
 			PushToken =/= undefined,  
 			UserMail =/= SenderMail ->
-	send_notfication(User,get_confirm_text(DisplayName,Day, EventTitle));
+	send_notfication(User,get_confirm_text(DisplayName,DayTs, EventTitle));
 send_confirm([],_,_,_) -> ok;
 send_confirm(_,_,_,_) -> false.
 
@@ -45,16 +45,16 @@ send_confirm(_,_,_,_) -> false.
 send_deconfirm([User|T],
 			Event,
 			Sender,
-			Day)->
-	send_deconfirm(tika_user:load(mail,User#user.mail),Event,Sender,Day),
-	send_deconfirm(T,Event,Sender,Day);
+			DayTs)->
+	send_deconfirm(tika_user:load(mail,User#user.mail),Event,Sender,DayTs),
+	send_deconfirm(T,Event,Sender,DayTs);
 send_deconfirm(User=#user{pushToken=PushToken, mail=UserMail},
 			#event{title=EventTitle},
 			#user{displayName=DisplayName, mail=SenderMail},
-			#day{day=Day}) when 
+			DayTs) when 
 			PushToken =/= undefined,
 			UserMail =/= SenderMail   ->
-	send_notfication(User,get_deconfirm_text(DisplayName,Day, EventTitle));
+	send_notfication(User,get_deconfirm_text(DisplayName,DayTs, EventTitle));
 send_deconfirm([],_,_,_) -> ok;
 send_deconfirm(_,_,_,_) -> false.
 
@@ -139,17 +139,31 @@ get_body(Token, Badge, Message)->
 get_invite_text(CreatorName, EventTitle)->
 	CreatorName++" hat dich zu "++EventTitle++" eingeladen.".
 
-get_confirm_text(DisplayName,Day, EventTitle) ->
-	DisplayName ++" hat am "++tika_database:msToDate(Day)++" zu "++EventTitle++" Zeit.".
+get_confirm_text(DisplayName,DayTs, EventTitle) ->
+	DisplayName ++" hat am "++msToDateString(DayTs)++" zu "++EventTitle++" Zeit.".
 
-get_deconfirm_text(DisplayName,Day, EventTitle) ->
-	DisplayName ++" hat am "++tika_database:msToDate(Day)++" zu "++EventTitle++" doch keine Zeit.".
+get_deconfirm_text(DisplayName,DayTs, EventTitle) ->
+	DisplayName ++" hat am "++msToDateString(DayTs)++" zu "++EventTitle++" doch keine Zeit.".
 
 get_reject_text(DisplayName, EventTitle) ->
 	DisplayName ++ " zu "++EventTitle++" abgesagt.".
 
-get_fix_text(EventTitle, Day) ->
-	EventTitle ++ " findet am "++tika_database:msToDate(Day)++" statt.".	
+get_fix_text(EventTitle, DayTs) ->
+	EventTitle ++ " findet am "++msToDateString(DayTs)++" statt.".	
 
+
+%%internal
+msToDateString(Milliseconds) ->
+   {Year,Month,Day}=tika_database:msToDate(Milliseconds),
+   YearStr=integer_to_list(Year),
+   case Month < 10 of
+   		true -> MonthStr="0"++integer_to_list(Month);
+   		false -> MonthStr=integer_to_list(Month)
+   end,
+   case Day < 10 of
+   		true -> DayStr="0"++integer_to_list(Day);
+   		false -> DayStr=integer_to_list(Day)
+   end,
+   DayStr++"."++MonthStr++"."++YearStr.
 
 
