@@ -93,7 +93,8 @@ updateUser(UserJson)->
    Pid=tika_process:id2pid(user,User#user.id),
    case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
         ok -> updateEventsMessage(User,"registerUser");
-        user_exists -> format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
+        user_exists -> tika_verification:create_verification(User#user.mail), 
+                        format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
    end.
 
 updateToken(UserJson)->
