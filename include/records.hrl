@@ -1,3 +1,10 @@
+-record(verification,{
+		mail :: string(),
+		timestamp ::non_neg_integer(),
+		code :: string()
+	}).
+
+
 -record(day,{
 		day :: string(),
 		timestamp ::non_neg_integer(),

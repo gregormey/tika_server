@@ -123,11 +123,12 @@ create_tables()->
 	%% process table - ram only
 	{atomic,ok}=mnesia:create_table(process_user, [{attributes, record_info(fields, process_user)},{ram_copies,[node()]}]),
 	{atomic,ok}=mnesia:create_table(process_event, [{attributes, record_info(fields, process_event)},{ram_copies,[node()]}]),
-	
 
+	
 	%% system models
 	{atomic,ok}=mnesia:create_table(user,[{attributes,record_info(fields,user)},{disc_copies,[node()]}]),
 	{atomic,ok}=mnesia:create_table(event,[{attributes,record_info(fields,event)},{disc_copies,[node()]}]),
+	{atomic,ok}=mnesia:create_table(verification, [{attributes, record_info(fields, verification)},{disc_copies,[node()]}]),
 	ok.
 	%mnesia:stop(). 
 
