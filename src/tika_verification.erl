@@ -22,7 +22,8 @@ Fun=fun(R) ->
 	end,
 case tika_database:find(verification,Fun) of
 	not_found -> not_found;
-	[Verification] -> tika_database:delete(verification, Verification)
+	[Verification] -> 
+					tika_database:delete(verification, Verification)
 end.
 
 list()->

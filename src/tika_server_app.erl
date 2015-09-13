@@ -16,7 +16,8 @@
 
 start(_StartType, _StartArgs) ->
 	%% @TODO: check if mnesia shema exists and install in case
-	start_websocket(),	 
+	start_websocket(),	
+	start_rest(), 
     tika_server_sup:start_link().
 
 start_websocket()->
@@ -29,6 +30,9 @@ start_websocket()->
 	Port = 10010,
 	{ok, _} = cowboy:start_http(http, 100, [{port, Port}],
 		[{env, [{dispatch, Dispatch}]}]).
+
+start_rest()->
+	leptus:start_listener(http, [{'_', [{tika_rest, undefined_state}]}]).
 
 stop(_State) ->
     ok.

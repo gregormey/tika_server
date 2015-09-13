@@ -15,6 +15,7 @@
 				  cowlib,
 				  ranch,
 				  cowboy,
+          leptus,
           inets
                  ]},
   {mod, { tika_server_app, []}},
