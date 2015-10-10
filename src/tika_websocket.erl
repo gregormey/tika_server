@@ -81,7 +81,6 @@ handle_events(Msg) ->
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "ConfirmDate" >> , DateTs}]} -> confirmDate(User,Event,DateTs);
         {[{<< "User" >> , User},{<< "Event" >> , Event},{<< "DeconfirmDate" >> , DateTs}]} -> deconfirmDate(User,Event,DateTs);
         {[{<< "FixEvent" >> , Event},{<< "Day" >> , Day}]} -> fixEvent(Event,Day);
-
             _ -> Msg
     end.
 
@@ -91,11 +90,9 @@ updateUser(UserJson)->
    erlang:display("Update"),
    erlang:display(User#user.id),
    Pid=tika_process:id2pid(user,User#user.id),
-   case tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}) of 
-        ok -> updateEventsMessage(User,"registerUser");
-        user_exists -> tika_verification:create_verification(User#user.mail), 
-                        format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]})
-   end.
+   updateUserResponse(  User,
+                        tika_user_fsm:update(Pid,{User#user.displayName,User#user.mail}),
+                        tika_verification:load(mail,User#user.mail)).
 
 updateToken(UserJson)->
    User=tika_user:json2user(UserJson),
@@ -186,4 +183,15 @@ updateEventsMessage(User,Message)->
         not_found -> format_client_response(Message,[]);
         Events -> format_client_response(Message,[tika_event:event2json(X) || X <- Events ])
     end.
+
+updateUserResponse(User,UpdateResult, _) when UpdateResult == ok ->
+     updateEventsMessage(User,"registerUser");
+updateUserResponse(User,UpdateResult,Verification) when UpdateResult == user_exists,Verification#verification.verified=/=undefined->
+     updateEventsMessage(User,"registerUser");
+updateUserResponse(User,UpdateResult, Verification) when UpdateResult == user_exists, Verification#verification.verified==undefined ->
+    tika_verification:create_verification(User#user.mail), 
+    format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]}).
+
+
+
 

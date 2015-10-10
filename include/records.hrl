@@ -1,6 +1,7 @@
 -record(verification,{
 		mail :: string(),
-		timestamp ::non_neg_integer(),
+		created ::non_neg_integer(),
+		verified ::non_neg_integer(),
 		code :: string()
 	}).
 

@@ -139,6 +139,7 @@ update_schema(Table,Fun) ->
 	case Table of
 		user -> mnesia:transform_table(user,Fun,record_info(fields,user));
 		event -> mnesia:transform_table(event,Fun,record_info(fields,event));
+		verification -> mnesia:transform_table(verification,Fun,record_info(fields,verification));
 		_ -> update_not_possible
 	end.
 
