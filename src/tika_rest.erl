@@ -10,8 +10,7 @@
 
 init(_Route, _Req, State) ->
     {ok, State}.
-get("/", _Req, State) ->
-    {<<"Time Is Knäpp!">>, State};
+
 get("/verify/:code", Req, State) ->
 	Code=binary_to_list(leptus_req:param(Req,code)),
 	case tika_verification:verify(Code) of 

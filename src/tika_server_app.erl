@@ -32,7 +32,9 @@ start_websocket()->
 		[{env, [{dispatch, Dispatch}]}]).
 
 start_rest()->
-	leptus:start_listener(http, [{'_', [{tika_rest, undefined_state}]}]).
+	 %% Define static directory for application
+   	Opts = [{static_dir, {'_', {priv_dir, ?MODULE, "templates"}}}],
+	leptus:start_listener(http, [{'_', [{tika_rest, undefined_state}]}],Opts).
 
 stop(_State) ->
     ok.
