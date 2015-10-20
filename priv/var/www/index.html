@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="de">
+<!DOCTYPE html >
+<html lang="de" ng-app="verificationApp">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
+    <title>Time Is Knäpp</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -17,7 +17,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
-  <body>
+  <body >
     <nav class="navbar navbar-static-top navbar-inverse">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -28,23 +28,14 @@
         </div>
       </nav>
 
-    <div class="container">
+    <div class="container" >
       <div class="row">
         <div class="col-md-8 col-md-offset-2">
           <div class="jumbotron">
              <p class="text-center">
                 <img src="./assets/tika.png" />
              </p>
-            <div class="alert alert-danger" role="alert">
-              <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-              <span class="sr-only">Falsch:</span>
-              Diesen Account kennen wir nicht.
-            </div>
-            <div class="alert alert-success" role="alert">
-              <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-              <span class="sr-only">Super:</span>
-              Du kannst dich jetzt wieder anmelden.
-            </div>
+            <div ng-view></div>
           </div>
       </div>
     </div>
@@ -54,5 +45,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular-route.js"></script>
+  <script src="./js/app.js"></script>
   </body>
 </html>
