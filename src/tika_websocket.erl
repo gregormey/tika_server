@@ -187,7 +187,11 @@ updateEventsMessage(User,Message)->
 updateUserResponse(User,UpdateResult, _) when UpdateResult == ok ->
      updateEventsMessage(User,"registerUser");
 updateUserResponse(User,UpdateResult,Verification) when UpdateResult == user_exists,Verification#verification.verified=/=undefined->
+     tika_verification:remove(mail, User#user.mail), 
      updateEventsMessage(User,"registerUser");
+updateUserResponse(User,UpdateResult, Verification) when UpdateResult == user_exists, Verification==not_found ->
+    tika_verification:create_verification(User#user.mail),
+    format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]});
 updateUserResponse(User,UpdateResult, Verification) when UpdateResult == user_exists, Verification#verification.verified==undefined ->
     tika_verification:create_verification(User#user.mail), 
     format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]}).

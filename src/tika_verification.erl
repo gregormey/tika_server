@@ -3,18 +3,23 @@
 -export([verify/1]).
 -export([list/0]).
 -export([load/2]).
+-export([remove/2]).
 
 -include("records.hrl").
-
+-define(VERIFICATION_BASE_URL, "http://localhost:8080/#/verify/").
 
 -spec create_verification(string()) -> tuple().
 create_verification(Mail) ->
-tika_database:write(verification,
+[Verification]=tika_database:write(verification,
 					#verification{
 						mail=Mail,
 						created=tika_database:unixTS(),
 						code=get_verification_code(Mail)
-					}).
+					}),
+User=tika_user:load(mail,Verification#verification.mail), 
+tika_mail:send_verification(User#user.mail,
+					User#user.displayName,
+					?VERIFICATION_BASE_URL++Verification#verification.code).
 
 -spec verify(string()) -> tuple() | not_found.
 verify(Code)->
@@ -37,8 +42,13 @@ load(mail,Mail)->
 	Fun=fun(R) ->
 				Mail==R#verification.mail
 		end,
-	[Verification]=tika_database:find(verification,Fun),
-	Verification.
+	case tika_database:find(verification,Fun) of
+		[Verification] -> Verification;
+		not_found -> not_found
+	end.
+remove(mail,Mail)->
+	tika_database:delete(verification,#verification{mail=Mail}).
+
 
 %%internal.
 get_verification_code(Mail)->
