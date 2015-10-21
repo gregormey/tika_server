@@ -180,15 +180,16 @@ format_client_response(Event,Data)->
 
 updateEventsMessage(User,Message)->
     case tika_event:findBy(user,User) of
-        not_found -> format_client_response(Message,[]);
-        Events -> format_client_response(Message,[tika_event:event2json(X) || X <- Events ])
+        not_found -> format_client_response(Message,{[{<<"events">>,[]},{<<"user">>,tika_user:user2json(User)}]});
+        Events -> format_client_response(Message,{[{<<"events">>,[tika_event:event2json(X) || X <- Events ]},
+                                                    {<<"user">>,tika_user:user2json(User)}]})
     end.
 
 updateUserResponse(User,UpdateResult, _) when UpdateResult == ok ->
      updateEventsMessage(User,"registerUser");
 updateUserResponse(User,UpdateResult,Verification) when UpdateResult == user_exists,Verification#verification.verified=/=undefined->
      tika_verification:remove(mail, User#user.mail), 
-     updateEventsMessage(User,"registerUser");
+     updateEventsMessage(tika_user:load(mail,User#user.mail),"registerUser");
 updateUserResponse(User,UpdateResult, Verification) when UpdateResult == user_exists, Verification==not_found ->
     tika_verification:create_verification(User#user.mail),
     format_client_response("registerUser",{[{<<"msg">>,<<"user_exists">>}]});

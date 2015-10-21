@@ -138,7 +138,7 @@ handle_call({json2user,Json}, _From, Tab) ->
 		#user{
 			id=Id,
 			displayName=binary_to_list(DisplayName),
-			mail=binary_to_list(Mail),
+			mail=string:to_lower(binary_to_list(Mail)),
 			pushToken=binary_to_list(PushToken) 
 		}
 	, Tab};
