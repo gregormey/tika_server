@@ -21,7 +21,8 @@ send(Mail,Content)->
     	{password,"EGv71DoSFaUIPa"},
     	{auth,always}
 	],
-	gen_smtp_client:send_blocking(Email, Options).
+	%%gen_smtp_client:send_blocking(Email, Options).
+	gen_smtp_client:send(Email, Options).
 
 getInviteMailContent(Mail, CreatorName,UserName,EventTitle)->
 	From="From: TIKA <timeisknaepp@gmail.com>\r\n",
