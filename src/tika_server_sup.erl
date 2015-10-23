@@ -25,5 +25,6 @@ start_link() ->
 init([]) ->
     {ok, { {one_for_one, 5, 10}, [?CHILD(tika_user, worker),
     								?CHILD(tika_event, worker),
+    								?CHILD(tika_verification, worker),
     								?CHILD(tika_process, worker)]} }.
 

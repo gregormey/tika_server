@@ -29,6 +29,7 @@
             	tika_process,
             	tika_user,
             	tika_user_fsm,
+              tika_verification,
             	tika_websocket
             ]}
  ]}.
