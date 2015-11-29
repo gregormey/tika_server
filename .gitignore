@@ -6,3 +6,4 @@ Mnesia.nonode@nohost
 rel/tika_server
 ebin
 .rebar
+tika.config
