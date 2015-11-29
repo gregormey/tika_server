@@ -23,7 +23,7 @@
 -export([stop/0]).
 
 -include("records.hrl").
--define(VERIFICATION_BASE_URL, "http://localhost:8080/#/verify/").
+-define(DEFAULT_VERIFICATION_BASE_URL, "http://localhost:8080/#/verify/").
 
 
 -type verification() :: #verification {}.
@@ -71,7 +71,8 @@ handle_call({create_verification,Mail}, _From, Tab) ->
 	User=tika_user:load(mail,Verification#verification.mail), 
 	{reply, tika_mail:send_verification(User#user.mail,
 						User#user.displayName,
-						?VERIFICATION_BASE_URL++Verification#verification.code), Tab};
+						tika_config:get_value(config,[config,verification_base_url], ?DEFAULT_VERIFICATION_BASE_URL)
+						++Verification#verification.code), Tab};
 
 handle_call({verify,Code}, _From, Tab) ->
 	Fun=fun(R) ->
