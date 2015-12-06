@@ -3,7 +3,7 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/2, stop/1, start_rest/0]).
 
 %% include for eunit
 -ifdef(TEST).
@@ -32,8 +32,12 @@ start_websocket()->
 		[{env, [{dispatch, Dispatch}]}]).
 
 start_rest()->
+	{ok,Host}=inet:parse_address(tika_config:get_value(config,[config,host], "127.0.0.1")),
 	 %% Define static directory for application
-   	Opts = [{static_dir, {'_', {priv_dir, ?MODULE, "var/www"}}}],
+   	Opts = [
+   			{ip, Host},
+   			{static_dir, {'_', {priv_dir, ?MODULE, "var/www"}}}
+   			],
 	leptus:start_listener(http, [{'_', [{tika_rest, undefined_state}]}],Opts).
 
 stop(_State) ->
