@@ -153,6 +153,7 @@ open({update_contacts,Contacts},_From,Event=#event{}) ->
     			dates=remove_members_from_dates(RemoveContacts,Event#event.dates)
     		}),
 	update_user_events(ModEvent#event.contacts),
+	update_user_events(RemoveContacts),
 	{reply,ok,open,ModEvent};
 
 open(Event, _From, Data) ->
