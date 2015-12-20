@@ -17,6 +17,7 @@
 		load/2,
 		remove/1,
 		user2json/1,
+		user2json/2,
 		json2user/1,
 		update/1,
 		batch_number/1]).
@@ -67,6 +68,9 @@ update(User) -> gen_server:call(?MODULE,{update,User}).
 
 -spec user2json(user()) -> tuple().
 user2json(User) -> gen_server:call(?MODULE,{user2json,User}).
+
+-spec user2json(user(),list()) -> tuple().
+user2json(inc_dates, User) -> gen_server:call(?MODULE,{user2json, inc_dates, User}).
 
 -spec json2user(tuple()) -> user().
 json2user(Json) -> gen_server:call(?MODULE,{json2user,Json}).
@@ -154,6 +158,26 @@ handle_call({user2json,User}, _From, Tab) ->
 			  			 	end
 			 }
 	 	]}
+	, Tab};
+
+handle_call({user2json,inc_dates, User}, _From, Tab) ->
+
+	{reply, 
+		{
+		[
+	  		{<<"id">>,User#user.id},
+	  		{<<"displayName">>,list_to_binary(User#user.displayName)},
+	  		{<<"mail">>,list_to_binary(User#user.mail)},
+	  		{<<"pushToken">>,case User#user.pushToken of
+			  			 			undefined -> <<"">>;
+			  			 				_ -> list_to_binary(User#user.pushToken)
+			  			 	end
+			 },
+			{<<"invited">>, User#user.invited},
+			{<<"created">>, User#user.created},
+			{<<"registered">>, User#user.registered}
+	 	]
+		}
 	, Tab};
 
 handle_call({batch_number,User}, _From, Tab) ->

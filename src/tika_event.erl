@@ -13,6 +13,7 @@
 -export([json2event/1, 
 			json2day/1, 
 			event2json/1,
+			event2json/2,
 			create/1, 
 			update/1, 
 			findBy/2,
@@ -51,6 +52,9 @@ json2day(Json) -> gen_server:call(?MODULE,{json2day,Json}).
 
 -spec event2json(event()) -> tuple().
 event2json(Event) -> gen_server:call(?MODULE,{event2json,Event}).
+
+-spec event2json(event(),atom()) -> tuple().
+event2json(inc_dates,Event) -> gen_server:call(?MODULE,{event2json,inc_dates,Event}).
 
 -spec create(event()) -> event().
 create(Event) -> gen_server:call(?MODULE,{create,Event}).
@@ -155,6 +159,22 @@ handle_call({event2json,Event}, _From, Tab) ->
 	  		{<<"appointment">>,day2json(Event#event.appointment)},
 	  		{<<"answer">>,Event#event.answer},
 	  		{<<"creator">>,tika_user:user2json(Event#event.creator)}
+	 	]}
+	, Tab};
+
+handle_call({event2json,inc_dates,Event}, _From, Tab) ->
+{reply, 
+		{[
+	  		{<<"id">>,Event#event.id},
+	  		{<<"title">>,list_to_binary(Event#event.title)},
+	  		{<<"description">>,list_to_binary(Event#event.description)},
+	  		{<<"dates">>,[day2json(Day)||Day<-Event#event.dates]},
+	  		{<<"answers">>,Event#event.answers},
+	  		{<<"contacts">>,[tika_user:user2json(User)||User<-Event#event.contacts]},
+	  		{<<"appointment">>,day2json(Event#event.appointment)},
+	  		{<<"answer">>,Event#event.answer},
+	  		{<<"creator">>,tika_user:user2json(Event#event.creator)},
+	  		{<<"created">>,Event#event.created}
 	 	]}
 	, Tab};
 
