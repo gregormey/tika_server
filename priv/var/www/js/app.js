@@ -1,4 +1,5 @@
-angular.module('verificationApp', ['ngRoute'])
+
+angular.module('verificationApp', ['ngRoute', 'googlechart'])
 
 .controller('VerificationCtrl', function($scope,$routeParams,$http){
 	$scope.codeFound=false;
@@ -11,31 +12,122 @@ angular.module('verificationApp', ['ngRoute'])
     });
 })
 .controller('MetricsCtrl', function($scope,$routeParams,$http){
-  
-  var draw = function(){
-
-    google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Year', 'Sales', 'Expenses'],
-          ['2013',  1000,      400],
-          ['2014',  1170,      460],
-          ['2015',  660,       1120],
-          ['2016',  1030,      540]
-        ]);
-
-        var options = {
-          title: 'Company Performance',
-          hAxis: {title: 'Year',  titleTextStyle: {color: '#333'}},
-          vAxis: {minValue: 0}
-        };
-
-        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
+   $scope.chartObject = {
+    "type": "AreaChart",
+    "displayed": false,
+    "data": {
+      "cols": [
+        {
+          "id": "month",
+          "label": "Month",
+          "type": "string",
+          "p": {}
+        },
+        {
+          "id": "laptop-id",
+          "label": "Laptop",
+          "type": "number",
+          "p": {}
+        },
+        {
+          "id": "desktop-id",
+          "label": "Desktop",
+          "type": "number",
+          "p": {}
+        },
+        {
+          "id": "server-id",
+          "label": "Server",
+          "type": "number",
+          "p": {}
+        },
+        {
+          "id": "cost-id",
+          "label": "Shipping",
+          "type": "number"
+        }
+      ],
+      "rows": [
+        {
+          "c": [
+            {
+              "v": "January"
+            },
+            {
+              "v": 19,
+              "f": "42 items"
+            },
+            {
+              "v": 12,
+              "f": "Ony 12 items"
+            },
+            {
+              "v": 7,
+              "f": "7 servers"
+            },
+            {
+              "v": 4
+            }
+          ]
+        },
+        {
+          "c": [
+            {
+              "v": "February"
+            },
+            {
+              "v": 13
+            },
+            {
+              "v": 1,
+              "f": "1 unit (Out of stock this month)"
+            },
+            {
+              "v": 12
+            },
+            {
+              "v": 2
+            }
+          ]
+        },
+        {
+          "c": [
+            {
+              "v": "March"
+            },
+            {
+              "v": 24
+            },
+            {
+              "v": 5
+            },
+            {
+              "v": 11
+            },
+            {
+              "v": 6
+            }
+          ]
+        }
+      ]
+    },
+    "options": {
+      "title": "Sales per month",
+      "isStacked": "true",
+      "fill": 20,
+      "displayExactValues": true,
+      "vAxis": {
+        "title": "Sales unit",
+        "gridlines": {
+          "count": 10
+        }
+      },
+      "hAxis": {
+        "title": "Date"
       }
-  };
-
+    },
+    "formatters": {}
+  }
 
   $http.get('/user').then(function successCallback(response) {
     if(response.status==200)
@@ -49,7 +141,6 @@ angular.module('verificationApp', ['ngRoute'])
      
     }
   });
-  draw();
 })
 .config(function($routeProvider) {
   $routeProvider
