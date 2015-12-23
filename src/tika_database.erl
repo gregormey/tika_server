@@ -80,8 +80,8 @@ delete(Table,Record) ->
 %% generates a POSIX timestamp
 -spec unixTS()-> non_neg_integer().
 unixTS()->
-	{Mega, Secs, _} = os:timestamp(),
-	Mega*1000000 + Secs.
+	{Mega, Secs, Micro} = os:timestamp(),
+	(Mega*1000000 + Secs)*1000 + round(Micro/1000).
 
 -spec msToDate(non_neg_integer())-> tuple().
 msToDate(Milliseconds) ->
