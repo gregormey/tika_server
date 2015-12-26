@@ -20,6 +20,9 @@
 		user2json/2,
 		json2user/1,
 		update/1,
+		updateCreated/1,
+		updateInvited/1,
+		updateRegistered/1,
 		batch_number/1]).
 
 %% default interfaces
@@ -80,7 +83,21 @@ batch_number(User) -> gen_server:call(?MODULE,{batch_number,User}).
 
 %% Internal functions
 
-
+updateCreated(User) ->
+	case User#user.created of
+		undefined -> User;
+		_ -> update(User#user{created=User#user.created*1000})
+	end.
+updateInvited(User) ->
+	case User#user.invited of
+		undefined -> User;
+		_ -> update(User#user{invited=User#user.invited*1000})
+	end.
+updateRegistered(User) ->
+	case User#user.registered  of
+		undefined -> User;
+		_ -> update(User#user{registered=User#user.registered*1000})
+	end.
 
 %% gen_server
 init([]) ->
