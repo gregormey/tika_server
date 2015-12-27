@@ -2,6 +2,8 @@
 	config,
 	[
 	{host, "localhost"},
-	{verification_base_url, "http://localhost:8080/#/verify/"}
+	{verification_base_url, "http://localhost:8080/#/verify/"},
+	{backend_user, "username"},
+	{backend_passwd, "p4ssw0rd"}
 	]
 }.
