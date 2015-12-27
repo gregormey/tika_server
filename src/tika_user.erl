@@ -13,6 +13,7 @@
 -export([create/0,
 		create/1,
 		list/1,
+		list/0,
 		load/1,
 		load/2,
 		remove/1,
@@ -55,6 +56,10 @@ create(User) -> gen_server:call(?MODULE,{create,User}).
 
 -spec list(with_mail) -> list()| not_found.
 list(with_mail) -> gen_server:call(?MODULE,{list,with_mail}).
+
+
+-spec list() -> list()| not_found.
+list() -> gen_server:call(?MODULE,{list}).
 
 -spec load(user()) -> user()| not_found.
 load(User) -> gen_server:call(?MODULE,{load,User}).
@@ -118,6 +123,9 @@ handle_call({list,with_mail}, _From, Tab) ->
 			R#user.mail =/= []
 	end,
 	{reply, tika_database:find(user,Fun) , Tab};
+
+handle_call({list}, _From, Tab) ->
+	{reply, tika_database:find(user) , Tab};
 
 handle_call({load,User}, _From, Tab) ->
 	{reply, 

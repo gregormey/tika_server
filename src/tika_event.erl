@@ -18,7 +18,8 @@
 			update/1, 
 			findBy/2,
 			list/0,
-			remove/1
+			remove/1,
+			updateCreated/1
 			]).
 
 %% default interfaces
@@ -31,6 +32,9 @@
 -type event() :: #event {}.
 -type user() :: #user {}.
 -type day() :: #day {}.
+
+
+
 
 %% Interfaces
 
@@ -74,7 +78,15 @@ update(Event) -> gen_server:call(?MODULE,{update,Event}).
 remove(all) -> gen_server:call(?MODULE,{remove,all}).
 
 
+
+updateCreated(Event) ->
+	case Event#event.created of
+		undefined -> Event;
+		_ -> update(Event#event{created=Event#event.created*1000})
+	end.
 %% Internal functions
+
+
 json2day_(Json)->
 	case Json of 
 		false -> false; %% if it is appointment 0

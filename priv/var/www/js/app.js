@@ -1,5 +1,5 @@
 
-var app= angular.module('verificationApp', ['ngRoute', 'googlechart'])
+var app= angular.module('TikaBackendApp', ['ngRoute', 'googlechart'])
 .config(function($routeProvider) {
   $routeProvider
   	.when('/', { templateUrl: 'templates/welcome.html' })

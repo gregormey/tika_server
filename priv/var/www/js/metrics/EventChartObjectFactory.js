@@ -1,4 +1,4 @@
-app.factory('ChartObjectFactory', function(CountUsersService,MapUserRows){
+app.factory('EventChartObjectFactory', function(CountEventsService,MapEventRows){
 
   /**
    * General Chart Object definition
@@ -16,32 +16,21 @@ app.factory('ChartObjectFactory', function(CountUsersService,MapUserRows){
             "p": {}
           },
           {
-            "id": "created-id",
-            "label": "Installs",
-            "type": "number",
-            "p": {}
-          },
-          {
-            "id": "invited-id",
-            "label": "Invites",
-            "type": "number",
-            "p": {}
-          },
-          {
-            "id": "registered-id",
-            "label": "Registrations",
+            "id": "event-id",
+            "label": "Events",
             "type": "number",
             "p": {}
           }
         ],
-        "rows": [],
-      "options": {
-        "title": "User per day",
+        "rows": []
+    },
+    "options": {
+        "title": "Events per day",
         "isStacked": "true",
         "fill": 20,
         "displayExactValues": true,
         "vAxis": {
-          "title": "Users",
+          "title": "Events",
           "gridlines": {
             "count": 10
           }
@@ -51,21 +40,20 @@ app.factory('ChartObjectFactory', function(CountUsersService,MapUserRows){
         }
       },
       "formatters": {}
-    }
   };
   /**
    * creates chart object with given data
    * @param  {[type]} data [description]
    * @return {[type]}      [description]
    */
-  var getChartObjectFromUsers= function(users){
+  var getChartObjectFromEvents= function(events){
     var start=new Date();
     
     start.setDate(start.getDate()-30);
     var end= new Date();
     
-    var rows=CountUsersService.countUsers(start,end,users);
-    chartObject.data.rows=MapUserRows.mapRows(rows);
+    var rows=CountEventsService.countEvents(start,end,events);
+    chartObject.data.rows=MapEventRows.mapRows(rows);
     return chartObject;
   }
 
@@ -75,7 +63,7 @@ app.factory('ChartObjectFactory', function(CountUsersService,MapUserRows){
   // Interface definition
   //--------------------
   return {
-    getChartObjectFromUsers:getChartObjectFromUsers    
+    getChartObjectFromEvents:getChartObjectFromEvents    
   };
 
 })

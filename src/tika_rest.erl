@@ -26,7 +26,7 @@ get("/event/", Req, State) ->
 
 get("/user/", Req, State) ->
 	{200, {json, 
-			[tika_user:user2json(inc_dates,X) || X <- tika_user:list(with_mail) ] 
+			[tika_user:user2json(inc_dates,X) || X <- tika_user:list() ] 
 	}, State}.
 
 terminate(_Reason, _Route, _Req, _State) ->
