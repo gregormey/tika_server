@@ -1,30 +1,15 @@
 
 angular.module('verificationApp', ['ngRoute', 'googlechart'])
-
-.controller('VerificationCtrl', function($scope,$routeParams,$http){
-	$scope.codeFound=false;
-	var code=$routeParams.code;
-	$http.get('/verify/'+code).then(function successCallback(response) {
-      if(response.status==200)
-    	{
-    		$scope.codeFound = true;
-    	}
-    });
-})
-.controller('MetricsCtrl', function($scope,$routeParams,$http){
-   
-  var get
-
-/**
+.service('CountUsersService', function(){
+  /**
  * addRows for chart Obj with user data
  * @param Date start [description]
  * @param Date end   [description]
  * @param Array user  [description]
  */
-  var addRows=function(start,end,users){
+  var countUsers=function(start,end,users){
     var rows={};
     var date=new Date(start.getFullYear(), start.getMonth(), start.getDate());
-   
    
     while(date<=end){
       var dateKey=date.getFullYear()+'-'+
@@ -35,7 +20,6 @@ angular.module('verificationApp', ['ngRoute', 'googlechart'])
           invited:{count:0,mail:""},
           registered:{count:0,mail:""}
       }
-
       for (i in users) {
         var user=users[i];
         
@@ -68,14 +52,25 @@ angular.module('verificationApp', ['ngRoute', 'googlechart'])
 
       }
 
-      
       date.setDate(date.getDate()+1);
     };
     return rows;
   };
 
-
-  var mapRows=function(rows){
+  //--------------------
+  // Interface definition
+  //--------------------
+  return {
+    countUsers:countUsers    
+  };
+})
+.service("MapUserRows",function(){
+  /**
+   * maps counted users to chart OBj row format
+   * @param  {[type]} rows [description]
+   * @return {[type]}      [description]
+   */
+   var mapRows=function(rows){
     var result=[];
     for(dateKey in rows){
       var data=rows[dateKey];
@@ -91,72 +86,121 @@ angular.module('verificationApp', ['ngRoute', 'googlechart'])
     return result;
   };
 
-   $scope.chartObject = {
-    "type": "AreaChart",
-    "displayed": false,
-    "data": {
-      "cols": [
-        {
-          "id": "day",
-          "label": "Day",
-          "type": "string",
-          "p": {}
+  //--------------------
+  // Interface definition
+  //--------------------
+  return {
+    mapRows:mapRows    
+  };
+})
+.factory('ChartObjectFactory', function(CountUsersService,MapUserRows){
+
+  /**
+   * General Chart Object definition
+   * @type {Object}
+   */
+  var chartObject= {
+      "type": "AreaChart",
+      "displayed": false,
+      "data": {
+        "cols": [
+          {
+            "id": "day",
+            "label": "Day",
+            "type": "string",
+            "p": {}
+          },
+          {
+            "id": "created-id",
+            "label": "Installs",
+            "type": "number",
+            "p": {}
+          },
+          {
+            "id": "invited-id",
+            "label": "Invites",
+            "type": "number",
+            "p": {}
+          },
+          {
+            "id": "registered-id",
+            "label": "Registrations",
+            "type": "number",
+            "p": {}
+          }
+        ],
+        "rows": [],
+      "options": {
+        "title": "User per day",
+        "isStacked": "true",
+        "fill": 20,
+        "displayExactValues": true,
+        "vAxis": {
+          "title": "Users",
+          "gridlines": {
+            "count": 10
+          }
         },
-        {
-          "id": "created-id",
-          "label": "Installs",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "invited-id",
-          "label": "Invites",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "registered-id",
-          "label": "Registrations",
-          "type": "number",
-          "p": {}
-        }
-      ],
-      "rows": [],
-    "options": {
-      "title": "User per day",
-      "isStacked": "true",
-      "fill": 20,
-      "displayExactValues": true,
-      "vAxis": {
-        "title": "Users",
-        "gridlines": {
-          "count": 10
+        "hAxis": {
+          "title": "Date"
         }
       },
-      "hAxis": {
-        "title": "Date"
-      }
-    },
-    "formatters": {}
+      "formatters": {}
+    }
+  };
+  /**
+   * creates chart object with given data
+   * @param  {[type]} data [description]
+   * @return {[type]}      [description]
+   */
+  var getChartObjectFromUsers= function(users){
+    var start=new Date();
+    
+    start.setDate(start.getDate()-30);
+    var end= new Date();
+    
+    var rows=CountUsersService.countUsers(start,end,users);
+    chartObject.data.rows=MapUserRows.mapRows(rows);
+    return chartObject;
   }
-};
 
+
+
+  //--------------------
+  // Interface definition
+  //--------------------
+  return {
+    getChartObjectFromUsers:getChartObjectFromUsers    
+  };
+
+})
+.controller('VerificationCtrl', function($scope,$routeParams,$http){
+	$scope.codeFound=false;
+	var code=$routeParams.code;
+	$http.get('/verify/'+code).then(function successCallback(response) {
+      if(response.status==200)
+    	{
+    		$scope.codeFound = true;
+    	}
+    });
+})
+
+.controller('MetricsCtrl', function($scope,$routeParams,$http,ChartObjectFactory){
+   
   $http.get('/user').then(function successCallback(response) {
     if(response.status==200)
     {
-      var start=new Date();
-      start.setDate(start.getDate()-30);
-      var end= new Date();
-      var rows=addRows(start,end,response.data);
-      $scope.chartObject.data.rows=mapRows(rows);
+      $scope.chartObject=ChartObjectFactory.getChartObjectFromUsers(response.data);
     }
   });
-  $http.get('/event').then(function successCallback(response) {
+
+  
+  /*$http.get('/event').then(function successCallback(response) {
     if(response.status==200)
     {
      
     }
-  });
+  });*/
 })
 .config(function($routeProvider) {
   $routeProvider
