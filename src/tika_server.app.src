@@ -1,7 +1,7 @@
 {application, tika_server,
  [
   {description, "Backend for Time is Knapp App"},
-  {vsn, "0.1"},
+  {vsn, "0.2"},
   {registered, []},
   {applications, [
                   kernel,
