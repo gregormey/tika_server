@@ -216,6 +216,9 @@ invite_user(Event=#event{creator=Creator},[User|T]) when User#user.mail =/= Crea
 					not_found -> tika_user:create(User);
 					FoundUser -> FoundUser
 				end,
+	erlang:display("InviteUser"),
+	erlang:display(InviteUser#user.id),
+	erlang:display(InviteUser#user.mail),
 	Pid=tika_process:id2pid(user,InviteUser#user.id),
 	ok=tika_user_fsm:invite(Pid,Event),
 	invite_user(Event,T);
