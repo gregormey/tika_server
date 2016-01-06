@@ -26,7 +26,7 @@ is_authenticated("/event/", Req, State) ->
 is_authenticated("/user/", Req, State) ->
 	authenticated(Req, State);
 
-is_authenticated(_, Req, State) ->
+is_authenticated(_, _Req, State) ->
 	{true, State}.
 
 get("/verify/:code", Req, State) ->
