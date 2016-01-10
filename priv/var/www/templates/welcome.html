@@ -1,5 +1,8 @@
-<img src="./assets/tika_bg.png" class="img-responsive" alt="Responsive image">
-
+<figure id="imgmap">
+<img src="./assets/tika_bg.png" class="img-responsive" alt="Responsive image" usemap="#map">
+<map name="map">
+    <area shape="rect" coords="432, 1501, 1102, 1694" href="https://itunes.apple.com/us/app/time-is-knapp/id1072922371?l=de&ls=1&mt=8" />
+</map>
 <div class="container-fluid navbar-inverse text-white row">
   <div class="col-md-1"></div> 
   <div class="col-md-10">  
@@ -45,3 +48,8 @@
   </div>
   <div class="col-md-1"></div> 
 </div>
+<script type="text/javascript" src="./js/vendor/imageMapResizer.min.js"></script>
+<script type="text/javascript">
+    $('map').imageMapResize();
+</script>
+
