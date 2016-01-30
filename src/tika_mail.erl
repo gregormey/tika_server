@@ -29,9 +29,9 @@ getInviteMailContent(Mail, CreatorName,UserName,EventTitle)->
 	To="To: "++UserName++" <"++Mail++">\r\n",
 	Subject="Subject: "++CreatorName++" hat dich zu "++EventTitle++" eingeladen.\r\n\r\n",
 	Text="Lade dir die Time Is Knäpp App im App Store oder im Google Play Store um zuzusagen.",
-	IosLink="Apple App Store: https://itunes.apple.com/us/app/time-is-knapp/id1072922371?l=de&ls=1&mt=8",
+	IosLink="<a href='https://itunes.apple.com/us/app/time-is-knapp/id1072922371?l=de&ls=1&mt=8'>Für IOS Laden</a>",
 	Imprint="LG\r\nTika",
-	list_to_binary(From++To++Subject++Text++Imprint). 
+	list_to_binary(From++To++Subject++Text++IosLink++Imprint). 
 
 getVerifyMailContent(Mail,UserName,Link)->
 	From="From: TIKA <timeisknaepp@gmail.com>\r\n",
