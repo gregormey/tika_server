@@ -32,13 +32,15 @@ start_websocket()->
 		[{env, [{dispatch, Dispatch}]}]).
 
 start_rest()->
-	{ok,Host}=inet:parse_address(tika_config:get_value(config,[config,host], "127.0.0.1")),
+	{ok,Ip}=inet:parse_address(tika_config:get_value(config,[config,ip], "127.0.0.1")),
+	HostMatch=tika_config:get_value(config,[config,hostmatch], '_'), 
+
 	 %% Define static directory for application
    	Opts = [
-   			{ip, Host},
-   			{static_dir, {'_', {priv_dir, ?MODULE, "var/www"}}}
+   			{ip, Ip},
+   			{static_dir, {HostMatch, {priv_dir, ?MODULE, "var/www"}}}
    			],
-	leptus:start_listener(http, [{'_', [{tika_rest, undefined_state}]}],Opts).
+	leptus:start_listener(http, [{HostMatch, [{tika_rest, undefined_state}]}],Opts).
 
 stop(_State) ->
     ok.
