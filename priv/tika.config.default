@@ -2,6 +2,7 @@
 	config,
 	[
 	{ip, "127.0.0.1"},
+	{port, 8080},
 	{hostmatch,'_'},
 	{verification_base_url, "http://localhost:8080/#/verify/"},
 	{backend_user, "username"},
