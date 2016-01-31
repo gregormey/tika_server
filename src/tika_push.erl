@@ -85,7 +85,8 @@ send_notfication(User=#user{pushToken=PushToken},Text)->
 						),
 	HTTPOptions = [],
 	Options = [],
-	httpc:request(Method, {URL, Header, Type, Body}, HTTPOptions, Options).
+	erlang:display(httpc:request(Method, {URL, Header, Type, Body}, HTTPOptions, Options)),
+	true.
 
 get_auth_header()->
 	[
